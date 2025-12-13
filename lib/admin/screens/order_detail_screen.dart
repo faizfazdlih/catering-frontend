@@ -17,6 +17,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _data;
 
+  // Helper function untuk parse double
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -333,13 +342,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 builder: (context) {
                                   double subtotal = 0;
                                   for (var item in _data!['detail']) {
-                                    subtotal += double.parse(item['subtotal'].toString());
+                                    subtotal += _parseDouble(item['subtotal']);
                                   }
                                   
-                                  final ongkir = _data!['pesanan']['ongkir'] != null
-                                      ? double.parse(_data!['pesanan']['ongkir'].toString())
-                                      : 0.0;
-                                  final total = double.parse(_data!['pesanan']['total_harga'].toString());
+                                  final ongkir = _parseDouble(_data!['pesanan']['ongkir']);
+                                  final total = _parseDouble(_data!['pesanan']['total_harga']);
                                   
                                   return Column(
                                     children: [

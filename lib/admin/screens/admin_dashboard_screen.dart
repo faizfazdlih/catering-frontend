@@ -79,6 +79,15 @@ Future<void> _logout() async {
   }
 }
 
+  // Helper function untuk parse double dari berbagai tipe data
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,7 +221,7 @@ Future<void> _logout() async {
                         _buildStatCard(
                           'Total Pendapatan',
                           FormatHelper.formatCurrency(
-                            (_stats['total_pendapatan'] ?? 0).toDouble(),
+                            _parseDouble(_stats['total_pendapatan']),
                           ),
                           Icons.attach_money,
                           Colors.purple,
