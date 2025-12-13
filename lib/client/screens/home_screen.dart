@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../models/menu.dart';
-import '../models/user.dart';
-import '../services/api_service.dart';
-import '../services/cart_provider.dart';
-import '../utils/format_helper.dart';
+import '../../models/menu.dart';
+import '../../models/user.dart';
+import '../../services/api_service.dart';
+import '../../services/cart_provider.dart';
+import '../../utils/format_helper.dart';
 import 'cart_screen.dart';
 import 'pesanan_screen.dart';
 import 'about_screen.dart';
-import 'login_screen.dart';
+import '../../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -69,37 +69,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return _menuList.where((menu) => menu.kategori == _selectedCategory).toList();
   }
 
-  Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
+Future<void> _logout() async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Logout'),
+      content: const Text('Apakah Anda yakin ingin keluar?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Logout'),
+        ),
+      ],
+    ),
+  );
 
-    if (confirm == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      }
+  if (confirm == true) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clear semua data
+    
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

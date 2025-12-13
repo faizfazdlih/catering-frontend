@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/cart_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'client/screens/home_screen.dart';
+import 'admin/screens/admin_dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class CateringApp extends StatelessWidget {
   }
 }
 
+// Splash Screen - Check Login Status
 class SplashCheck extends StatefulWidget {
   const SplashCheck({Key? key}) : super(key: key);
 
@@ -80,14 +82,24 @@ class _SplashCheckState extends State<SplashCheck> {
     if (!mounted) return;
     
     final prefs = await SharedPreferences.getInstance();
+    final role = prefs.getString('role'); // 'client' atau 'admin'
     final token = prefs.getString('token');
     
-    if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+    // Check if already logged in
+    if (token != null && token.isNotEmpty && role != null) {
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
     } else {
+      // Not logged in, go to login screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -122,7 +134,7 @@ class _SplashCheckState extends State<SplashCheck> {
               ),
               SizedBox(height: 10),
               Text(
-                'Pesan Catering Mudah & Cepat',
+                'Management System',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white70,
