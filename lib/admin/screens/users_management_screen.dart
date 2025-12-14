@@ -102,6 +102,74 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
     }
   }
 
+  Future<void> _updateUserRole(int userId, String currentRole) async {
+    final newRole = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ubah Role User'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Pilih role baru untuk user:'),
+            const SizedBox(height: 16),
+            ListTile(
+              title: const Text('Client'),
+              leading: Radio<String>(
+                value: 'client',
+                groupValue: currentRole,
+                onChanged: (value) => Navigator.pop(context, value),
+              ),
+              onTap: () => Navigator.pop(context, 'client'),
+            ),
+            ListTile(
+              title: const Text('Admin'),
+              leading: Radio<String>(
+                value: 'admin',
+                groupValue: currentRole,
+                onChanged: (value) => Navigator.pop(context, value),
+              ),
+              onTap: () => Navigator.pop(context, 'admin'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+        ],
+      ),
+    );
+
+    if (newRole == null || newRole == currentRole) return;
+
+    try {
+      final response = await ApiService.updateUserRole(userId, newRole);
+      
+      if (mounted) {
+        if (response['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message']),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _loadData(); // Reload data
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'])),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'approved':
@@ -209,19 +277,39 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                   const SizedBox(height: 4),
                   Text(user['email']),
                   const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(user['status']),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _getStatusText(user['status']),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(user['status']),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _getStatusText(user['status']),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: user['role'] == 'admin' ? Colors.blue : Colors.grey,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          user['role'].toString().toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -232,13 +320,32 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoRow('ID', '#${user['id']}'),
+                      _buildInfoRow('Email', user['email']),
                       _buildInfoRow('No. Telepon', user['no_telepon'] ?? '-'),
                       _buildInfoRow('Alamat', user['alamat'] ?? '-'),
+                      _buildInfoRow('Role', user['role'].toString().toUpperCase()),
                       _buildInfoRow(
                         'Terdaftar',
                         user['created_at'] != null
                             ? user['created_at'].toString().substring(0, 10)
                             : '-',
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      
+                      // Change Role Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _updateUserRole(user['id'], user['role']),
+                          icon: const Icon(Icons.swap_horiz),
+                          label: Text('Ubah Role (${user['role']})'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                          ),
+                        ),
                       ),
                       
                       if (user['status'] == 'pending') ...[

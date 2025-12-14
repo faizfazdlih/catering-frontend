@@ -38,64 +38,41 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     try {
-      // Cek format: kalau tanpa @ berarti username admin
-      if (!email.contains('@')) {
-        // Try Admin Login
-        await _loginAsAdmin(email, password);
+      // Unified login - backend akan handle role detection
+      final response = await ApiService.login(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        final role = response['role']; // 'client' atau 'admin'
+        
+        await prefs.setString('role', role);
+        await prefs.setString('token', response['token']);
+        await prefs.setString('user', jsonEncode(response['user']));
+
+        // Redirect based on role
+        if (role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
       } else {
-        // Try Client Login
-        await _loginAsClient(email, password);
+        _showError(response['message'] ?? 'Login gagal');
       }
     } catch (e) {
       _showError('Terjadi kesalahan: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loginAsClient(String email, String password) async {
-    final response = await ApiService.login(
-      email: email,
-      password: password,
-    );
-
-    if (!mounted) return;
-
-    if (response['success'] == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('role', 'client');
-      await prefs.setString('token', response['token']);
-      await prefs.setString('user', jsonEncode(response['user']));
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      _showError(response['message'] ?? 'Login gagal');
-    }
-  }
-
-  Future<void> _loginAsAdmin(String username, String password) async {
-    final response = await ApiService.adminLogin(
-      username: username,
-      password: password,
-    );
-
-    if (!mounted) return;
-
-    if (response['success'] == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('role', 'admin');
-      await prefs.setString('token', response['token']);
-      await prefs.setString('admin', jsonEncode(response['admin']));
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-      );
-    } else {
-      _showError(response['message'] ?? 'Login gagal');
     }
   }
 
@@ -156,15 +133,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextFormField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                            labelText: 'Email / Username',
-                            hintText: 'client@mail.com atau admin',
-                            prefixIcon: Icon(Icons.person),
+                            labelText: 'Email',
+                            hintText: 'Masukkan email Anda',
+                            prefixIcon: Icon(Icons.email),
                             border: OutlineInputBorder(),
-                            helperText: 'Admin: gunakan username tanpa @',
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email/Username tidak boleh kosong';
+                              return 'Email tidak boleh kosong';
                             }
                             return null;
                           },
@@ -236,71 +212,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         
                         const SizedBox(height: 16),
-                        
-                        // Info Box
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.orange.shade200),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.info_outline, 
-                                    color: Colors.orange.shade700, 
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Login Info:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.orange.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '• Client: Gunakan email (contoh@mail.com)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                              Text(
-                                '• Admin: Gunakan username (admin)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Divider(height: 1),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Default Admin:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade700,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const Text(
-                                'Username: admin',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              const Text(
-                                'Password: admin123',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),

@@ -48,6 +48,7 @@ class ApiService {
     }
   }
 
+  // Unified Login (akan detect role dari backend)
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -68,6 +69,7 @@ class ApiService {
         return {
           'success': true,
           'token': data['token'],
+          'role': data['role'],
           'user': data['user'],
         };
       } else {
@@ -78,36 +80,15 @@ class ApiService {
     }
   }
 
-  // ==================== ADMIN AUTH ====================
+  // ==================== ADMIN AUTH (DEPRECATED - use unified login) ====================
   
+  // Keep for backward compatibility
   static Future<Map<String, dynamic>> adminLogin({
     required String username,
     required String password,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/admin/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'password': password,
-        }),
-      );
-      
-      final data = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'token': data['token'],
-          'admin': data['admin'],
-        };
-      } else {
-        return {'success': false, 'message': data['message']};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Koneksi gagal: ${e.toString()}'};
-    }
+    // Redirect to unified login with email format
+    return login(email: username, password: password);
   }
 
   // ==================== ADMIN USER MANAGEMENT ====================
@@ -140,6 +121,27 @@ class ApiService {
         Uri.parse('$baseUrl/auth/admin/users/$userId/status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'status': status}),
+      );
+      
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error: ${e.toString()}'};
+    }
+  }
+
+  // ADMIN: Update User Role (NEW)
+  static Future<Map<String, dynamic>> updateUserRole(int userId, String role) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/auth/admin/users/$userId/role'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'role': role}),
       );
       
       final data = jsonDecode(response.body);
