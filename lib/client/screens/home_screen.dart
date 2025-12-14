@@ -1,4 +1,4 @@
-// screens/home_screen.dart
+// client/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,37 +69,46 @@ class _HomeScreenState extends State<HomeScreen> {
     return _menuList.where((menu) => menu.kategori == _selectedCategory).toList();
   }
 
-Future<void> _logout() async {
-  final confirm = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Logout'),
-      content: const Text('Apakah Anda yakin ingin keluar?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Batal'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Logout'),
-        ),
-      ],
-    ),
-  );
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
 
-  if (confirm == true) {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear semua data
-    
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+    if (confirm == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
     }
   }
-}
+
+  void _showMenuDetail(Menu menu) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MenuDetailBottomSheet(menu: menu),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -260,87 +269,91 @@ Future<void> _logout() async {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Image placeholder
-                                  Container(
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.shade100,
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(12),
+                              child: InkWell(
+                                onTap: () => _showMenuDetail(menu),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Image placeholder
+                                    Container(
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade100,
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(12),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          size: 50,
+                                          color: Colors.orange.shade300,
+                                        ),
                                       ),
                                     ),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.restaurant,
-                                        size: 50,
-                                        color: Colors.orange.shade300,
+                                    
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            menu.namaMenu,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            FormatHelper.formatCurrency(menu.harga),
+                                            style: const TextStyle(
+                                              color: Colors.orange,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          SizedBox(
+                                            width: double.infinity,
+                                            height: 32,
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                cart.addItem(menu);
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('${menu.namaMenu} ditambahkan ke keranjang'),
+                                                    duration: const Duration(seconds: 1),
+                                                  ),
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    isInCart ? Icons.check : Icons.add_shopping_cart,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    isInCart ? 'Di Keranjang' : 'Tambah',
+                                                    style: const TextStyle(fontSize: 12),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                  
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          menu.namaMenu,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          FormatHelper.formatCurrency(menu.harga),
-                                          style: const TextStyle(
-                                            color: Colors.orange,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          height: 32,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              cart.addItem(menu);
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('${menu.namaMenu} ditambahkan ke keranjang'),
-                                                  duration: const Duration(seconds: 1),
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              padding: EdgeInsets.zero,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  isInCart ? Icons.check : Icons.add_shopping_cart,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  isInCart ? 'Di Keranjang' : 'Tambah',
-                                                  style: const TextStyle(fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -348,6 +361,368 @@ Future<void> _logout() async {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Menu Detail Bottom Sheet Widget
+class MenuDetailBottomSheet extends StatefulWidget {
+  final Menu menu;
+
+  const MenuDetailBottomSheet({Key? key, required this.menu}) : super(key: key);
+
+  @override
+  State<MenuDetailBottomSheet> createState() => _MenuDetailBottomSheetState();
+}
+
+class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
+  int _quantity = 1;
+
+  void _incrementQuantity() {
+    setState(() => _quantity++);
+  }
+
+  void _decrementQuantity() {
+    if (_quantity > 1) {
+      setState(() => _quantity--);
+    }
+  }
+
+  void _addToCart() {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    
+    // Add multiple items based on quantity
+    for (int i = 0; i < _quantity; i++) {
+      cart.addItem(widget.menu);
+    }
+    
+    Navigator.pop(context);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${widget.menu.namaMenu} ($_quantity) ditambahkan ke keranjang'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'LIHAT',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = Provider.of<CartProvider>(context);
+    final isInCart = cart.isInCart(widget.menu.id);
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              // Drag Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Image
+                      Center(
+                        child: Container(
+                          width: double.infinity,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.restaurant,
+                            size: 100,
+                            color: Colors.orange.shade300,
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Menu Name
+                      Text(
+                        widget.menu.namaMenu,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 8),
+                      
+                      // Category Badge
+                      if (widget.menu.kategori != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            widget.menu.kategori!.toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.orange.shade700,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Price
+                      Text(
+                        FormatHelper.formatCurrency(widget.menu.harga),
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Description Title
+                      const Text(
+                        'Deskripsi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 8),
+                      
+                      // Description
+                      Text(
+                        widget.menu.deskripsi ?? 'Tidak ada deskripsi',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                          height: 1.5,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Status
+                      Row(
+                        children: [
+                          Icon(
+                            widget.menu.status == 'tersedia' 
+                                ? Icons.check_circle 
+                                : Icons.cancel,
+                            color: widget.menu.status == 'tersedia' 
+                                ? Colors.green 
+                                : Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.menu.status == 'tersedia' 
+                                ? 'Tersedia' 
+                                : 'Habis',
+                            style: TextStyle(
+                              color: widget.menu.status == 'tersedia' 
+                                  ? Colors.green 
+                                  : Colors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      if (isInCart) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.shopping_cart, 
+                                color: Colors.green.shade700, 
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${cart.getQuantity(widget.menu.id)} item di keranjang',
+                                style: TextStyle(
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      
+                      const SizedBox(height: 100), // Space for bottom buttons
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Bottom Action Bar
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Quantity Selector
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Jumlah:',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          
+                          // Minus Button
+                          IconButton(
+                            onPressed: _decrementQuantity,
+                            icon: const Icon(Icons.remove_circle_outline),
+                            color: Colors.orange,
+                            iconSize: 32,
+                          ),
+                          
+                          // Quantity Display
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '$_quantity',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          
+                          // Plus Button
+                          IconButton(
+                            onPressed: _incrementQuantity,
+                            icon: const Icon(Icons.add_circle),
+                            color: Colors.orange,
+                            iconSize: 32,
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Subtotal
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Subtotal: ',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          Text(
+                            FormatHelper.formatCurrency(widget.menu.harga * _quantity),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Add to Cart Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: widget.menu.status == 'tersedia' 
+                              ? _addToCart 
+                              : null,
+                          icon: const Icon(Icons.add_shopping_cart, size: 24),
+                          label: Text(
+                            widget.menu.status == 'tersedia'
+                                ? 'Tambah ke Keranjang'
+                                : 'Menu Habis',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.menu.status == 'tersedia'
+                                ? Colors.orange
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
