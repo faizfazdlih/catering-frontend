@@ -370,19 +370,8 @@ class _OrdersManagementScreenState extends State<OrdersManagementScreen> {
                                               ),
                                             ],
                                             
-                                            if (pesanan.status == 'dikirim') ...[
-                                              Expanded(
-                                                child: ElevatedButton.icon(
-                                                  onPressed: () => _updateStatus(pesanan, 'selesai'),
-                                                  icon: const Icon(Icons.check, size: 16),
-                                                  label: const Text('Selesai', style: TextStyle(fontSize: 12)),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.green,
-                                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                            // Admin tidak bisa menandai pesanan 'selesai'.
+                                            // Hanya client pemilik yang dapat mengkonfirmasi penerimaan.
                                             
                                             if (pesanan.status == 'pending' || pesanan.status == 'diproses') ...[
                                               const SizedBox(width: 8),

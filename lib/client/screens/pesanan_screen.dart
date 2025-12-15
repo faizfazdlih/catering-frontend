@@ -19,6 +19,7 @@ class _PesananScreenState extends State<PesananScreen> {
   User? _currentUser;
   List<Pesanan> _pesananList = [];
   bool _isLoading = true;
+  String? _role;
 
   @override
   void initState() {
@@ -29,10 +30,14 @@ class _PesananScreenState extends State<PesananScreen> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user');
+    final role = prefs.getString('role');
     
     if (userJson != null) {
       final user = User.fromJson(jsonDecode(userJson));
-      setState(() => _currentUser = user);
+      setState(() {
+        _currentUser = user;
+        _role = role;
+      });
       await _loadPesanan(user.id);
     }
   }
@@ -51,6 +56,67 @@ class _PesananScreenState extends State<PesananScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal memuat pesanan: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _konfirmasiPenerimaan(int pesananId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Penerimaan'),
+        content: const Text(
+          'Apakah pesanan sudah Anda terima dengan baik dan sesuai?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Belum'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+            ),
+            child: const Text('Ya, Sudah Terima'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final response = await ApiService.updatePesananStatus(
+        pesananId, 
+        'selesai'
+      );
+      
+      if (mounted) {
+        if (response['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Terima kasih! Pesanan telah dikonfirmasi selesai.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh data
+          if (_currentUser != null) {
+            _loadPesanan(_currentUser!.id);
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'Gagal mengkonfirmasi'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
         );
       }
     }
@@ -136,7 +202,12 @@ class _PesananScreenState extends State<PesananScreen> {
                                   pesananId: pesanan.id,
                                 ),
                               ),
-                            );
+                            ).then((_) {
+                              // Refresh ketika kembali dari detail
+                              if (_currentUser != null) {
+                                _loadPesanan(_currentUser!.id);
+                              }
+                            });
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -229,6 +300,33 @@ class _PesananScreenState extends State<PesananScreen> {
                                     ),
                                   ],
                                 ),
+                                
+                                // Tombol Konfirmasi (hanya muncul jika status = dikirim dan user adalah pemilik client)
+                                if (pesanan.status == 'dikirim' &&
+                                  _role == 'client' &&
+                                  _currentUser != null &&
+                                  pesanan.userId == _currentUser!.id) ...[
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _konfirmasiPenerimaan(pesanan.id),
+                                      icon: const Icon(Icons.check_circle, size: 18),
+                                      label: const Text(
+                                        'Konfirmasi Penerimaan',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' as http_parser;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:3000/api'; // Android Emulator
@@ -13,12 +14,13 @@ class ApiService {
     if (relativePath == null || relativePath.isEmpty) {
       return '';
     }
-    
+
     // Jika sudah berupa URL lengkap, return as is
-    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+    if (relativePath.startsWith('http://') ||
+        relativePath.startsWith('https://')) {
       return relativePath;
     }
-    
+
     // Jika relative path, gabungkan dengan base URL (tanpa /api)
     final baseUrlWithoutApi = baseUrl.replaceAll('/api', '');
     return '$baseUrlWithoutApi$relativePath';
@@ -275,10 +277,7 @@ class ApiService {
     dynamic imageFile, // XFile from image_picker
   }) async {
     try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/menu'),
-      );
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/menu'));
 
       // Add text fields
       request.fields['nama_menu'] = namaMenu;
@@ -289,19 +288,19 @@ class ApiService {
       // Add image file if exists
       if (imageFile != null) {
         var bytes = await imageFile.readAsBytes();
-        
+
         // Get original filename and extension
         final String originalPath = imageFile.path;
         String extension = '.jpg'; // default
         String mimeType = 'image/jpeg'; // default
-        
+
         // Try to get extension from path
         if (originalPath.contains('.')) {
           final parts = originalPath.split('.');
           final ext = parts.last.toLowerCase();
           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext)) {
             extension = '.$ext';
-            
+
             // Set correct MIME type
             if (ext == 'png') {
               mimeType = 'image/png';
@@ -314,9 +313,10 @@ class ApiService {
             }
           }
         }
-        
+
         // Generate filename dengan extension yang benar
-        final String filename = 'menu_${DateTime.now().millisecondsSinceEpoch}$extension';
+        final String filename =
+            'menu_${DateTime.now().millisecondsSinceEpoch}$extension';
 
         var multipartFile = http.MultipartFile.fromBytes(
           'foto', // Sesuai dengan upload.single('foto') di backend
@@ -325,7 +325,7 @@ class ApiService {
           contentType: http_parser.MediaType.parse(mimeType),
         );
         request.files.add(multipartFile);
-        
+
         print('📤 Uploading: $filename (${bytes.length} bytes, $mimeType)');
       }
 
@@ -334,26 +334,35 @@ class ApiService {
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-      
+
       print('✅ Status: ${response.statusCode}');
-      print('📄 Response: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      print(
+        '📄 Response: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}',
+      );
 
       // Check if response is HTML error page
-      if (response.body.trim().startsWith('<!DOCTYPE') || 
+      if (response.body.trim().startsWith('<!DOCTYPE') ||
           response.body.trim().startsWith('<html') ||
           response.body.trim().startsWith('<')) {
         return {
-          'success': false, 
-          'message': 'Server error (${response.statusCode}): Pastikan backend running dan endpoint /api/menu tersedia'
+          'success': false,
+          'message':
+              'Server error (${response.statusCode}): Pastikan backend running dan endpoint /api/menu tersedia',
         };
       }
 
       var data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return {'success': true, 'message': data['message'] ?? 'Menu berhasil ditambahkan'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Menu berhasil ditambahkan',
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Gagal menambahkan menu'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Gagal menambahkan menu',
+        };
       }
     } catch (e, stackTrace) {
       print('❌ Error: $e');
@@ -384,7 +393,7 @@ class ApiService {
       request.fields['harga'] = harga.toString();
       request.fields['kategori'] = kategori;
       request.fields['status'] = status;
-      
+
       // Keep existing image URL if no new upload
       if (existingImageUrl != null && imageFile == null) {
         request.fields['foto_url'] = existingImageUrl;
@@ -393,19 +402,19 @@ class ApiService {
       // Add new image if exists
       if (imageFile != null) {
         var bytes = await imageFile.readAsBytes();
-        
+
         // Get original filename and extension
         final String originalPath = imageFile.path;
         String extension = '.jpg'; // default
         String mimeType = 'image/jpeg'; // default
-        
+
         // Try to get extension from path
         if (originalPath.contains('.')) {
           final parts = originalPath.split('.');
           final ext = parts.last.toLowerCase();
           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext)) {
             extension = '.$ext';
-            
+
             // Set correct MIME type
             if (ext == 'png') {
               mimeType = 'image/png';
@@ -418,9 +427,10 @@ class ApiService {
             }
           }
         }
-        
+
         // Generate filename dengan extension yang benar
-        final String filename = 'menu_${DateTime.now().millisecondsSinceEpoch}$extension';
+        final String filename =
+            'menu_${DateTime.now().millisecondsSinceEpoch}$extension';
 
         var multipartFile = http.MultipartFile.fromBytes(
           'foto',
@@ -429,7 +439,7 @@ class ApiService {
           contentType: http_parser.MediaType.parse(mimeType),
         );
         request.files.add(multipartFile);
-        
+
         print('📤 Uploading: $filename (${bytes.length} bytes, $mimeType)');
       }
 
@@ -438,26 +448,35 @@ class ApiService {
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-      
+
       print('✅ Status: ${response.statusCode}');
-      print('📄 Response: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      print(
+        '📄 Response: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}',
+      );
 
       // Check if response is HTML error page
-      if (response.body.trim().startsWith('<!DOCTYPE') || 
+      if (response.body.trim().startsWith('<!DOCTYPE') ||
           response.body.trim().startsWith('<html') ||
           response.body.trim().startsWith('<')) {
         return {
-          'success': false, 
-          'message': 'Server error (${response.statusCode}): Pastikan backend running dan endpoint tersedia'
+          'success': false,
+          'message':
+              'Server error (${response.statusCode}): Pastikan backend running dan endpoint tersedia',
         };
       }
 
       var data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
-        return {'success': true, 'message': data['message'] ?? 'Menu berhasil diupdate'};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Menu berhasil diupdate',
+        };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Gagal mengupdate menu'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Gagal mengupdate menu',
+        };
       }
     } catch (e, stackTrace) {
       print('❌ Error: $e');
@@ -602,9 +621,23 @@ class ApiService {
     String status,
   ) async {
     try {
+      // Attach token if available in SharedPreferences
+      String? token;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        token = prefs.getString('token');
+      } catch (_) {
+        token = null;
+      }
+
+      final headers = {'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
       final response = await http.patch(
         Uri.parse('$baseUrl/pesanan/$pesananId/status'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({'status': status}),
       );
 
