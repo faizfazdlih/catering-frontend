@@ -6,7 +6,7 @@ class ApiService {
   static const String baseUrl = 'http://localhost:3000/api'; // Android Emulator
   // static const String baseUrl = 'http://localhost:3000/api'; // iOS Simulator
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Device Fisik
-  
+
   static void _handleError(http.Response response) {
     if (response.statusCode >= 400) {
       final data = jsonDecode(response.body);
@@ -15,7 +15,7 @@ class ApiService {
   }
 
   // ==================== CLIENT AUTH ====================
-  
+
   static Future<Map<String, dynamic>> register({
     required String nama,
     required String email,
@@ -35,9 +35,9 @@ class ApiService {
           'alamat': alamat,
         }),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -57,14 +57,11 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {
           'success': true,
@@ -81,7 +78,7 @@ class ApiService {
   }
 
   // ==================== ADMIN AUTH (DEPRECATED - use unified login) ====================
-  
+
   // Keep for backward compatibility
   static Future<Map<String, dynamic>> adminLogin({
     required String username,
@@ -92,7 +89,7 @@ class ApiService {
   }
 
   // ==================== ADMIN USER MANAGEMENT ====================
-  
+
   static Future<List<dynamic>> getAllUsers() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/auth/admin/users'));
@@ -106,7 +103,9 @@ class ApiService {
 
   static Future<List<dynamic>> getPendingUsers() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/auth/admin/pending-users'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/admin/pending-users'),
+      );
       _handleError(response);
       final data = jsonDecode(response.body);
       return data['users'] ?? [];
@@ -115,16 +114,19 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserStatus(int userId, String status) async {
+  static Future<Map<String, dynamic>> updateUserStatus(
+    int userId,
+    String status,
+  ) async {
     try {
       final response = await http.patch(
         Uri.parse('$baseUrl/auth/admin/users/$userId/status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'status': status}),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -136,16 +138,19 @@ class ApiService {
   }
 
   // ADMIN: Update User Role (NEW)
-  static Future<Map<String, dynamic>> updateUserRole(int userId, String role) async {
+  static Future<Map<String, dynamic>> updateUserRole(
+    int userId,
+    String role,
+  ) async {
     try {
       final response = await http.patch(
         Uri.parse('$baseUrl/auth/admin/users/$userId/role'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'role': role}),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -157,7 +162,7 @@ class ApiService {
   }
 
   // ==================== MENU ====================
-  
+
   static Future<List<dynamic>> getMenu() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/menu'));
@@ -197,9 +202,9 @@ class ApiService {
           'kategori': kategori,
         }),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -231,9 +236,9 @@ class ApiService {
           'status': status,
         }),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -248,9 +253,9 @@ class ApiService {
   static Future<Map<String, dynamic>> deleteMenu(int id) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl/menu/$id'));
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
@@ -262,13 +267,22 @@ class ApiService {
   }
 
   // ==================== ONGKIR ====================
-  
-  static Future<Map<String, dynamic>> calculateOngkir(double jarakKm) async {
+
+  // Calculate ongkir either by providing jarakKm OR by providing destination coordinates
+  // destination: { 'lat': double, 'lng': double }
+  static Future<Map<String, dynamic>> calculateOngkir({
+    double? jarakKm,
+    Map<String, double>? destination,
+  }) async {
     try {
+      final payload = <String, dynamic>{};
+      if (jarakKm != null) payload['jarak_km'] = jarakKm;
+      if (destination != null) payload['destination'] = destination;
+
       final response = await http.post(
         Uri.parse('$baseUrl/ongkir/calculate'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'jarak_km': jarakKm}),
+        body: jsonEncode(payload),
       );
       _handleError(response);
       return jsonDecode(response.body);
@@ -288,7 +302,7 @@ class ApiService {
   }
 
   // ==================== PESANAN ====================
-  
+
   static Future<Map<String, dynamic>> createPesanan({
     required int userId,
     required String tanggalPesan,
@@ -314,16 +328,19 @@ class ApiService {
           'catatan': catatan,
         }),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201) {
         return {'success': true, 'data': data};
       } else {
         return {'success': false, 'message': data['message']};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Gagal membuat pesanan: ${e.toString()}'};
+      return {
+        'success': false,
+        'message': 'Gagal membuat pesanan: ${e.toString()}',
+      };
     }
   }
 
@@ -354,9 +371,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getPesananDetail(int pesananId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/pesanan/$pesananId'),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/pesanan/$pesananId'));
       _handleError(response);
       return jsonDecode(response.body);
     } catch (e) {
@@ -365,16 +380,19 @@ class ApiService {
   }
 
   // ADMIN: Update Pesanan Status
-  static Future<Map<String, dynamic>> updatePesananStatus(int pesananId, String status) async {
+  static Future<Map<String, dynamic>> updatePesananStatus(
+    int pesananId,
+    String status,
+  ) async {
     try {
       final response = await http.patch(
         Uri.parse('$baseUrl/pesanan/$pesananId/status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'status': status}),
       );
-      
+
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {

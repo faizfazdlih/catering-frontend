@@ -20,8 +20,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _alamatController = TextEditingController();
   final _jarakController = TextEditingController();
+  final _destLatController = TextEditingController();
+  final _destLngController = TextEditingController();
   final _catatanController = TextEditingController();
-  
+  double _calculatedJarak = 0;
+
   User? _currentUser;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
@@ -49,9 +52,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _calculateOngkir() async {
-    if (_jarakController.text.isEmpty) {
+    // Prefer using destination coordinates so server (heigit) can compute the route
+    if (_destLatController.text.isEmpty || _destLngController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan jarak pengiriman')),
+        const SnackBar(content: Text('Masukkan koordinat tujuan (lat & lng) untuk menghitung ongkir')),
       );
       return;
     }
@@ -59,23 +63,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isCalculating = true);
 
     try {
-      final jarak = double.parse(_jarakController.text);
-      final result = await ApiService.calculateOngkir(jarak);
-      
+      final destLat = double.tryParse(_destLatController.text);
+      final destLng = double.tryParse(_destLngController.text);
+      if (destLat == null || destLng == null) throw Exception('Koordinat tujuan tidak valid');
+
+      final result = await ApiService.calculateOngkir(destination: {'lat': destLat, 'lng': destLng});
+
       setState(() {
-        _ongkir = result['ongkir'].toDouble();
-        _estimasiWaktu = result['estimasi_waktu'];
+        _ongkir = (result['ongkir'] as num).toDouble();
+        _estimasiWaktu = result['estimasi_waktu'] ?? '';
+        if (result['jarak_km'] != null) {
+          _calculatedJarak = (result['jarak_km'] as num).toDouble();
+          _jarakController.text = _calculatedJarak.toString();
+        }
         _isCalculating = false;
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ongkir berhasil dihitung: ${FormatHelper.formatCurrency(_ongkir)}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
     } catch (e) {
       setState(() => _isCalculating = false);
       if (mounted) {
@@ -128,24 +130,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isSubmitting = true);
 
     final cart = Provider.of<CartProvider>(context, listen: false);
-    
+
     // Prepare items
-    final items = cart.items.map((item) => {
-      'menu_id': item.menu.id,
-      'jumlah': item.jumlah,
-      'harga_satuan': item.menu.harga,
-    }).toList();
+    final items = cart.items
+        .map(
+          (item) => {
+            'menu_id': item.menu.id,
+            'jumlah': item.jumlah,
+            'harga_satuan': item.menu.harga,
+          },
+        )
+        .toList();
 
     try {
       final response = await ApiService.createPesanan(
         userId: _currentUser!.id,
         tanggalPesan: FormatHelper.formatDateForApi(_selectedDate),
-        waktuPengiriman: FormatHelper.formatTimeForApi(_selectedTime.hour, _selectedTime.minute),
+        waktuPengiriman: FormatHelper.formatTimeForApi(
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
         alamatPengiriman: _alamatController.text,
         jarakKm: double.parse(_jarakController.text),
         ongkir: _ongkir,
         items: items,
-        catatan: _catatanController.text.isNotEmpty ? _catatanController.text : null,
+        catatan: _catatanController.text.isNotEmpty
+            ? _catatanController.text
+            : null,
       );
 
       if (!mounted) return;
@@ -153,7 +164,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (response['success'] == true) {
         // Clear cart
         cart.clear();
-        
+
         // Show success dialog
         showDialog(
           context: context,
@@ -189,14 +200,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Gagal membuat pesanan')),
+          SnackBar(
+            content: Text(response['message'] ?? 'Gagal membuat pesanan'),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -210,9 +223,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = subtotal + _ongkir;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-      ),
+      appBar: AppBar(title: const Text('Checkout')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -235,33 +246,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       const Divider(),
-                      ...cart.items.map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text('${item.menu.namaMenu} x${item.jumlah}'),
-                            ),
-                            Text(FormatHelper.formatCurrency(item.subtotal)),
-                          ],
+                      ...cart.items.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${item.menu.namaMenu} x${item.jumlah}',
+                                ),
+                              ),
+                              Text(FormatHelper.formatCurrency(item.subtotal)),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
                       const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Subtotal:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text(FormatHelper.formatCurrency(subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Subtotal:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            FormatHelper.formatCurrency(subtotal),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Delivery Details
               Card(
                 child: Padding(
@@ -277,7 +298,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       TextFormField(
                         controller: _alamatController,
                         maxLines: 3,
@@ -293,26 +314,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           return null;
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               controller: _jarakController,
-                              keyboardType: TextInputType.number,
+                              readOnly: true,
                               decoration: const InputDecoration(
                                 labelText: 'Jarak (km)',
                                 prefixIcon: Icon(Icons.social_distance),
-                                helperText: 'Masukkan jarak dari lokasi catering',
+                                helperText:
+                                    'Hanya menampilkan hasil perhitungan otomatis dari API',
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Jarak tidak boleh kosong';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Masukkan angka yang valid';
+                                if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                                  return 'Nilai jarak tidak valid';
                                 }
                                 return null;
                               },
@@ -330,11 +349,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text('Hitung'),
+                                : const Text('Hitung (gunakan koordinat tujuan)'),
                           ),
                         ],
                       ),
-                      
+                      const SizedBox(height: 8),
+                      const Text('Atau: masukkan koordinat tujuan untuk perhitungan (heigit)'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _destLatController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Tujuan Lat',
+                                prefixIcon: Icon(Icons.my_location),
+                                helperText: 'Contoh: -6.200000',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _destLngController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Tujuan Lng',
+                                prefixIcon: Icon(Icons.my_location),
+                                helperText: 'Contoh: 106.816666',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
                       if (_ongkir > 0) ...[
                         const SizedBox(height: 12),
                         Container(
@@ -347,9 +396,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('Ongkir:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  const Text(
+                                    'Ongkir:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   Text(
                                     FormatHelper.formatCurrency(_ongkir),
                                     style: const TextStyle(
@@ -373,18 +428,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                       ],
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.calendar_today),
                         title: const Text('Tanggal Pengiriman'),
-                        subtitle: Text(FormatHelper.formatDateWithMonth(_selectedDate)),
+                        subtitle: Text(
+                          FormatHelper.formatDateWithMonth(_selectedDate),
+                        ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: _selectDate,
                       ),
-                      
+
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.access_time),
@@ -393,9 +450,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: _selectTime,
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       TextFormField(
                         controller: _catatanController,
                         maxLines: 2,
@@ -410,9 +467,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Total
               Card(
                 color: Colors.orange.shade50,
@@ -440,9 +497,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Submit Button
               SizedBox(
                 width: double.infinity,
@@ -479,6 +536,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void dispose() {
     _alamatController.dispose();
     _jarakController.dispose();
+    _destLatController.dispose();
+    _destLngController.dispose();
     _catatanController.dispose();
     super.dispose();
   }
