@@ -110,6 +110,67 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Widget untuk menampilkan gambar menu
+  Widget _buildMenuImage(Menu menu, {double height = 120}) {
+    if (menu.fotoUrl != null && menu.fotoUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: Image.network(
+          ApiService.getImageUrl(menu.fotoUrl),
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: height,
+              color: Colors.orange.shade100,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              height: height,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.restaurant,
+                  size: 50,
+                  color: Colors.orange.shade300,
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      return Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.restaurant,
+            size: 50,
+            color: Colors.orange.shade300,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
@@ -275,23 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Image placeholder
-                                    Container(
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.shade100,
-                                        borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(12),
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.restaurant,
-                                          size: 50,
-                                          color: Colors.orange.shade300,
-                                        ),
-                                      ),
-                                    ),
+                                    // Image - UPDATED WITH NETWORK IMAGE
+                                    _buildMenuImage(menu),
                                     
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
@@ -366,7 +412,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Menu Detail Bottom Sheet Widget
+// ============================================================================
+// Menu Detail Bottom Sheet Widget - UPDATED WITH IMAGE DISPLAY
+// ============================================================================
+
 class MenuDetailBottomSheet extends StatefulWidget {
   final Menu menu;
 
@@ -416,6 +465,67 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
     );
   }
 
+  // Widget untuk menampilkan gambar menu detail
+  Widget _buildDetailImage() {
+    if (widget.menu.fotoUrl != null && widget.menu.fotoUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          ApiService.getImageUrl(widget.menu.fotoUrl),
+          width: double.infinity,
+          height: 200,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: double.infinity,
+              height: 200,
+              color: Colors.orange.shade100,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print('Error loading image: $error');
+            return Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.restaurant,
+                size: 100,
+                color: Colors.orange.shade300,
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      return Container(
+        width: double.infinity,
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.restaurant,
+          size: 100,
+          color: Colors.orange.shade300,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
@@ -452,21 +562,9 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Image
+                      // Image - UPDATED WITH NETWORK IMAGE
                       Center(
-                        child: Container(
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.restaurant,
-                            size: 100,
-                            color: Colors.orange.shade300,
-                          ),
-                        ),
+                        child: _buildDetailImage(),
                       ),
                       
                       const SizedBox(height: 20),
