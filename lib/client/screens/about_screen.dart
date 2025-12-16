@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 
 class AboutScreen extends StatefulWidget {
-  const AboutScreen({Key? key}) : super(key: key);
+  const AboutScreen({super.key});
 
   @override
   State<AboutScreen> createState() => _AboutScreenState();
@@ -34,24 +34,56 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tentang Aplikasi'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // App Info
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 32),
+
+              // Header
+              const Text(
+                'Tentang Aplikasi',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // App Info Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   children: [
-                    const Icon(
-                      Icons.restaurant_menu,
-                      size: 80,
-                      color: Colors.orange,
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.restaurant_menu,
+                        size: 40,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -59,126 +91,197 @@ class _AboutScreenState extends State<AboutScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    const SizedBox(height: 4),
+                    Text(
                       'Versi 1.0.0',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Aplikasi pemesanan catering online dengan sistem client-admin yang memudahkan pelanggan memesan makanan dan admin mengelola pesanan.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(height: 1.5),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                        height: 1.6,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Features
-            const Text(
-              'Fitur Aplikasi',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Column(
-                children: [
-                  _buildFeatureItem(
-                    Icons.shopping_cart,
-                    'Pemesanan Online',
-                    'Pesan catering dengan mudah melalui aplikasi',
-                  ),
-                  const Divider(height: 1),
-                  _buildFeatureItem(
-                    Icons.calculate,
-                    'Perhitungan Otomatis',
-                    'Hitung total pesanan dan ongkir secara otomatis',
-                  ),
-                  const Divider(height: 1),
-                  _buildFeatureItem(
-                    Icons.local_shipping,
-                    'Estimasi Pengiriman',
-                    'Lihat estimasi waktu dan biaya pengiriman',
-                  ),
-                  const Divider(height: 1),
-                  _buildFeatureItem(
-                    Icons.receipt_long,
-                    'Riwayat Pesanan',
-                    'Pantau status pesanan Anda secara real-time',
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // API Information
-            const Text(
-              'API yang Digunakan',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            
-            if (_isLoading)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+
+              const SizedBox(height: 24),
+
+              // Features Section
+              const Text(
+                'Fitur Aplikasi',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-              )
-            else if (_apiInfo != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildFeatureItem(
+                      Icons.shopping_cart_rounded,
+                      'Pemesanan Online',
+                      'Pesan catering dengan mudah melalui aplikasi',
+                      isFirst: true,
+                    ),
+                    _buildDivider(),
+                    _buildFeatureItem(
+                      Icons.calculate_rounded,
+                      'Perhitungan Otomatis',
+                      'Hitung total pesanan dan ongkir secara otomatis',
+                    ),
+                    _buildDivider(),
+                    _buildFeatureItem(
+                      Icons.local_shipping_rounded,
+                      'Estimasi Pengiriman',
+                      'Lihat estimasi waktu dan biaya pengiriman',
+                    ),
+                    _buildDivider(),
+                    _buildFeatureItem(
+                      Icons.receipt_long_rounded,
+                      'Riwayat Pesanan',
+                      'Pantau status pesanan Anda secara real-time',
+                      isLast: true,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // API Information
+              const Text(
+                'API yang Digunakan',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              if (_isLoading)
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                    ),
+                  ),
+                )
+              else if (_apiInfo != null)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.api, color: Colors.orange),
-                          const SizedBox(width: 8),
-                          Text(
-                            _apiInfo!['api_name'] ?? 'Ongkir API',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.api,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _apiInfo!['api_name'] ?? 'Ongkir API',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      _buildInfoRow('Deskripsi', _apiInfo!['description'] ?? '-'),
+                      const SizedBox(height: 16),
+                      _buildInfoRow(
+                        'Deskripsi',
+                        _apiInfo!['description'] ?? '-',
+                      ),
                       _buildInfoRow('Website', _apiInfo!['website'] ?? '-'),
                       _buildInfoRow('Penggunaan', _apiInfo!['usage'] ?? '-'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.shade200),
+                          color: const Color(0xFFFAFAFA),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
-                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.info_outline,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'API ini digunakan untuk menghitung ongkos kirim berdasarkan jarak pengiriman',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.blue.shade700,
+                                  color: Colors.grey[700],
+                                  height: 1.4,
                                 ),
                               ),
                             ),
@@ -188,120 +291,224 @@ class _AboutScreenState extends State<AboutScreen> {
                     ],
                   ),
                 ),
+
+              const SizedBox(height: 24),
+
+              // Tech Stack
+              const Text(
+                'Teknologi yang Digunakan',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            
-            const SizedBox(height: 16),
-            
-            // Tech Stack
-            const Text(
-              'Teknologi yang Digunakan',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   children: [
                     _buildTechItem('Frontend', 'Flutter'),
+                    const SizedBox(height: 12),
                     _buildTechItem('Backend', 'Node.js + Express.js'),
+                    const SizedBox(height: 12),
                     _buildTechItem('Database', 'MySQL'),
+                    const SizedBox(height: 12),
                     _buildTechItem('API', 'Ongkir Calculation API'),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Developer Info
-            const Text(
-              'Developer',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+
+              const SizedBox(height: 24),
+
+              // Developer Info
+              const Text(
+                'Developer',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   children: [
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.orange,
-                      child: Icon(Icons.group, size: 40, color: Colors.white),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Tim Pengembang',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Institut Teknologi Nasional Bandung',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Program Studi Informatika',
-                      style: TextStyle(color: Colors.grey),
+                      child: const Icon(
+                        Icons.group_rounded,
+                        size: 40,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'UTS Pemrograman Mobile',
+                      'Tim Pengembang',
                       style: TextStyle(
-                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                    const Text(
-                      'Semester Ganjil 2024/2025',
-                      style: TextStyle(color: Colors.grey),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Institut Teknologi Nasional Bandung',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Program Studi Informatika',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAFAFA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'UTS Pemrograman Mobile',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Semester Ganjil 2024/2025',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Copyright
-            Center(
-              child: Text(
-                '© 2024 Catering App. All rights reserved.',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
+
+              const SizedBox(height: 32),
+
+              // Copyright
+              Center(
+                child: Text(
+                  '© 2024 Catering App. All rights reserved.',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String title, String description) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.orange),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+  Widget _buildFeatureItem(
+    IconData icon,
+    String title,
+    String description, {
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: isFirst ? 16 : 12,
+        bottom: isLast ? 16 : 12,
+        left: 16,
+        right: 16,
       ),
-      subtitle: Text(description),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.black, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(height: 1, color: Colors.grey[200]),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -309,14 +516,18 @@ class _AboutScreenState extends State<AboutScreen> {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           Expanded(
-            child: Text(value),
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, color: Colors.black),
+            ),
           ),
         ],
       ),
@@ -324,21 +535,26 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Widget _buildTechItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
             value,
             style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.orange,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

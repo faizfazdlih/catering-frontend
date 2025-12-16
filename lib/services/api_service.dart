@@ -531,7 +531,10 @@ class ApiService {
     try {
       final response = await http.get(Uri.parse('$baseUrl/ongkir/info'));
       _handleError(response);
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      // Pastikan link API tercantum — gunakan https://account.heigit.org/ sebagai fallback
+      data['website'] = data['website'] ?? 'https://account.heigit.org/';
+      return data;
     } catch (e) {
       throw Exception('Gagal memuat info ongkir: ${e.toString()}');
     }
