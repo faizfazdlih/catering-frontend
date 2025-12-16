@@ -1,11 +1,7 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'services/cart_provider.dart';
-import 'screens/login_screen.dart';
-import 'client/screens/home_screen.dart';
-import 'admin/screens/admin_dashboard_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,96 +52,7 @@ class CateringApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const SplashCheck(),
-    );
-  }
-}
-
-// Splash Screen - Check Login Status
-class SplashCheck extends StatefulWidget {
-  const SplashCheck({Key? key}) : super(key: key);
-
-  @override
-  State<SplashCheck> createState() => _SplashCheckState();
-}
-
-class _SplashCheckState extends State<SplashCheck> {
-  @override
-  void initState() {
-    super.initState();
-    _checkLogin();
-  }
-
-  Future<void> _checkLogin() async {
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (!mounted) return;
-    
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString('role'); // 'client' atau 'admin'
-    final token = prefs.getString('token');
-    
-    // Check if already logged in
-    if (token != null && token.isNotEmpty && role != null) {
-      if (role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    } else {
-      // Not logged in, go to login screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.orange.shade400, Colors.orange.shade700],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.restaurant_menu, size: 100, color: Colors.white),
-              SizedBox(height: 20),
-              Text(
-                'Catering App',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Management System',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
-              ),
-              SizedBox(height: 30),
-              CircularProgressIndicator(color: Colors.white),
-            ],
-          ),
-        ),
-      ),
+      home: const SplashScreen(),
     );
   }
 }

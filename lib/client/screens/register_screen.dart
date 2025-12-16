@@ -1,6 +1,7 @@
 // screens/register_screen.dart
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -46,7 +47,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response['success'] == true) {
         _showSuccess(response['message'] ?? 'Registrasi berhasil');
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        }
       } else {
         _showError(response['message'] ?? 'Registrasi gagal');
       }
@@ -245,7 +251,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const Text('Sudah punya akun?'),
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
+                      },
                       child: const Text('Login'),
                     ),
                   ],
