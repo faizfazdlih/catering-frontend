@@ -196,7 +196,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Belum punya akun client?'),
+                            Flexible(
+                              child: Text(
+                                'Belum punya akun client?',
+                                style: TextStyle(fontSize: 13),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(
@@ -206,6 +212,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 );
                               },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                              ),
                               child: const Text('Daftar'),
                             ),
                           ],
