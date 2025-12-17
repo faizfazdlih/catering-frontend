@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/user.dart';
 import '../../services/api_service.dart';
 import '../../services/cart_provider.dart';
 import '../../utils/format_helper.dart';
+import '../../widgets/inline_map_picker.dart';
 import 'home_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -37,6 +40,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    _tryGetCurrentLocation();
   }
 
   Future<void> _loadUserData() async {
@@ -49,6 +53,129 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _alamatController.text = user.alamat ?? '';
       });
     }
+  }
+
+  Future<void> _tryGetCurrentLocation() async {
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ GPS tidak aktif. Aktifkan GPS untuk deteksi lokasi otomatis.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Check permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return; // Permission denied, skip
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return; // Permission denied forever, skip
+      }
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Text('🔍 Mendeteksi lokasi Anda...'),
+              ],
+            ),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 15),
+          ),
+        );
+      }
+
+      // Get current position with BEST accuracy
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+        timeLimit: const Duration(seconds: 15),
+      );
+
+      // If accuracy is low, try again
+      if (position.accuracy > 50) {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.bestForNavigation,
+          timeLimit: const Duration(seconds: 10),
+        );
+      }
+
+      // Auto-fill location if not already set
+      if (_destLatController.text.isEmpty && _destLngController.text.isEmpty) {
+        setState(() {
+          _destLatController.text = position.latitude.toStringAsFixed(6);
+          _destLngController.text = position.longitude.toStringAsFixed(6);
+        });
+        
+        // Auto-calculate ongkir
+        _calculateOngkir();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '📍 Lokasi terdeteksi! Akurasi: ${position.accuracy.toStringAsFixed(0)}m',
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: position.accuracy <= 50 ? Colors.green : Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Silent fail for auto-detect, but show message if timeout
+      if (mounted && e.toString().contains('timeout')) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⏱️ Timeout deteksi lokasi. Silakan pilih lokasi manual di peta.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onLocationSelected(LatLng location) {
+    setState(() {
+      _destLatController.text = location.latitude.toStringAsFixed(6);
+      _destLngController.text = location.longitude.toStringAsFixed(6);
+    });
+    // Auto-calculate ongkir setelah lokasi dipilih
+    _calculateOngkir();
   }
 
   Future<void> _calculateOngkir() async {
@@ -317,68 +444,99 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                       const SizedBox(height: 16),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _jarakController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Jarak (km)',
-                                prefixIcon: Icon(Icons.social_distance),
-                                helperText:
-                                    'Hanya menampilkan hasil perhitungan otomatis dari API',
-                              ),
-                              validator: (value) {
-                                if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
-                                  return 'Nilai jarak tidak valid';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: _isCalculating ? null : _calculateOngkir,
-                            child: _isCalculating
-                                ? const SizedBox(
+                      TextFormField(
+                        controller: _jarakController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Jarak',
+                          prefixIcon: const Icon(Icons.social_distance),
+                          suffixIcon: _isCalculating
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
                                     ),
-                                  )
-                                : const Text('Hitung (gunakan koordinat tujuan)'),
-                          ),
-                        ],
+                                  ),
+                                )
+                              : null,
+                          helperText: _isCalculating 
+                              ? 'Menghitung jarak...' 
+                              : 'Dihitung otomatis setelah pilih lokasi',
+                          border: const OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                            return 'Nilai jarak tidak valid';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Pilih Lokasi Pengiriman di Peta',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      const Text('Atau: masukkan koordinat tujuan untuk perhitungan (heigit)'),
-                      const SizedBox(height: 8),
+                      const Text(
+                        'Ketuk peta untuk memilih lokasi pengiriman. Ongkir akan dihitung otomatis.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Inline Map
+                      InlineMapPicker(
+                        height: 300,
+                        initialLocation: _destLatController.text.isNotEmpty && 
+                                        _destLngController.text.isNotEmpty
+                            ? LatLng(
+                                double.tryParse(_destLatController.text) ?? -6.914744,
+                                double.tryParse(_destLngController.text) ?? 107.609810,
+                              )
+                            : null,
+                        onLocationSelected: _onLocationSelected,
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // Koordinat terpilih (read-only)
                       Row(
                         children: [
                           Expanded(
                             child: TextFormField(
                               controller: _destLatController,
-                              keyboardType: TextInputType.number,
+                              readOnly: true,
                               decoration: const InputDecoration(
-                                labelText: 'Tujuan Lat',
-                                prefixIcon: Icon(Icons.my_location),
-                                helperText: 'Contoh: -6.200000',
+                                labelText: 'Latitude',
+                                prefixIcon: Icon(Icons.location_on),
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Color(0xFFF5F5F5),
                               ),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextFormField(
                               controller: _destLngController,
-                              keyboardType: TextInputType.number,
+                              readOnly: true,
                               decoration: const InputDecoration(
-                                labelText: 'Tujuan Lng',
-                                prefixIcon: Icon(Icons.my_location),
-                                helperText: 'Contoh: 106.816666',
+                                labelText: 'Longitude',
+                                prefixIcon: Icon(Icons.location_on),
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Color(0xFFF5F5F5),
                               ),
+                              style: const TextStyle(fontSize: 12),
                             ),
                           ),
                         ],
