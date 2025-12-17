@@ -80,41 +80,52 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Lottie Animation
-              Lottie.asset(
-                'assets/animations/ServeFood.json',
-                width: 280,
-                height: 280,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Serveman',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF9E090F),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 50),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _DotIndicator(delay: index * 200),
-                  );
-                }),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF9E090F),
+              Color(0xFFD91C23),
             ],
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Lottie Animation
+                Lottie.asset(
+                  'assets/animations/serve.json',
+                  width: 280,
+                  height: 280,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'serveman',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 50),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: _DotIndicator(delay: index * 200),
+                    );
+                  }),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -169,7 +180,7 @@ class _DotIndicatorState extends State<_DotIndicator> with SingleTickerProviderS
           width: 10,
           height: 10,
           decoration: const BoxDecoration(
-            color: Color(0xFF9E090F),
+            color: Colors.white,
             shape: BoxShape.circle,
           ),
         ),

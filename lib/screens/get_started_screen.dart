@@ -245,7 +245,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                         ),
                       ),
                       child: Text(
-                        _currentPage == _items.length - 1 ? 'Get Started' : 'Next',
+                        _currentPage == _items.length - 1 ? 'Mulai Sekarang' : 'Selanjutnya',
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
@@ -263,7 +263,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Already have account? ',
+                          'Sudah memiliki akun? ',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.7),
                             fontSize: 14,
@@ -272,7 +272,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                         GestureDetector(
                           onTap: _goToLogin,
                           child: const Text(
-                            'Log in',
+                            'Login',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
