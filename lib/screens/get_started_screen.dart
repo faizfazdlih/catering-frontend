@@ -47,7 +47,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
   Future<void> _goToRegister() async {
     await _completeOnboarding();
     if (mounted) {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const RegisterScreen()),
       );

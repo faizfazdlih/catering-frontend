@@ -343,12 +343,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Color(0xFF9E090F),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.person,
-                        color: Colors.grey[600],
+                        color: Colors.white,
                         size: 24,
                       ),
                     ),
@@ -360,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 40,
                         height: 40,
                         decoration: const BoxDecoration(
-                          color: Colors.black,
+                          color: Color(0xFF9E090F),
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
@@ -381,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.black,
                               shape: BoxShape.circle,
                             ),
                             constraints: const BoxConstraints(
@@ -391,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Text(
                               '${cart.itemCount}',
                               style: const TextStyle(
-                                color: Colors.black,
+                                color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -414,7 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'New Menu',
+                    'Menu Baru',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -486,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         vertical: 6,
                                                       ),
                                                       decoration: BoxDecoration(
-                                                        color: Colors.white,
+                                                        color: Colors.white.withOpacity(0.7),
                                                         borderRadius: BorderRadius.circular(20),
                                                       ),
                                                       child: Text(
@@ -555,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'All Food',
+                    'Semua Makanan',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -649,7 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.black : Colors.grey[200],
+                          color: isSelected ? Color(0xFF9E090F) : Colors.grey[200],
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Center(
@@ -677,7 +677,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const SliverFillRemaining(
                   child: Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B35)),
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
                     ),
                   ),
                 )
@@ -758,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     vertical: 4,
                                                   ),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.black.withOpacity(0.7),
+                                                    color: Colors.white.withOpacity(0.7),
                                                     borderRadius: BorderRadius.circular(12),
                                                   ),
                                                   child: Text(
@@ -766,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     style: const TextStyle(
                                                       fontSize: 9,
                                                       fontWeight: FontWeight.w600,
-                                                      color: Colors.white,
+                                                      color: Colors.black,
                                                     ),
                                                   ),
                                                 ),
@@ -826,7 +826,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   Text(
                                                     FormatHelper.formatCurrency(menu.harga),
                                                     style: const TextStyle(
-                                                      color: Color(0xFFFF6B35),
+                                                      color: Color(0xFF9E090F),
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 15,
                                                     ),
@@ -883,7 +883,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       style: ElevatedButton.styleFrom(
                                                         backgroundColor: isInCart
                                                             ? const Color(0xFF4CAF50)
-                                                            : Colors.black,
+                                                            : const Color(0xFF9E090F),
                                                         foregroundColor: Colors.white,
                                                         elevation: 0,
                                                         shape: RoundedRectangleBorder(
@@ -988,7 +988,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(
             icon,
-            color: isSelected ? Colors.black : Colors.grey[400],
+            color: isSelected ? Color(0xFF9E090F) : Colors.grey[400],
             size: 26,
           ),
           const SizedBox(height: 4),
@@ -1197,7 +1197,7 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
                                 vertical: 7,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF000000),
+                                color: const Color(0xFF9E090F),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: Color(0xFF000000).withOpacity(0.3),
@@ -1221,7 +1221,7 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFF6B35),
+                          color: Color(0xFF9E090F),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -1321,7 +1321,7 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFF6B35),
+                                    color: Color(0xFF9E090F),
                                   ),
                                 ),
                               ],
@@ -1334,7 +1334,7 @@ class _MenuDetailBottomSheetState extends State<MenuDetailBottomSheet> {
                               child: ElevatedButton(
                                 onPressed: widget.menu.status == 'tersedia' ? _addToCart : null,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF000000),
+                                  backgroundColor: const Color(0xFF9E090F),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
