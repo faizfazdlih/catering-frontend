@@ -527,6 +527,19 @@ class ApiService {
     }
   }
 
+  // Get ongkir history (recent calculations)
+  static Future<List<dynamic>> getOngkirHistory({int limit = 20}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/ongkir/calculate');
+      final response = await http.get(uri);
+      _handleError(response);
+      final data = jsonDecode(response.body);
+      return data['history'] ?? [];
+    } catch (e) {
+      throw Exception('Gagal memuat riwayat ongkir: ${e.toString()}');
+    }
+  }
+
   static Future<Map<String, dynamic>> getOngkirInfo() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/ongkir/info'));
