@@ -103,7 +103,7 @@ class _MapPickerState extends State<MapPicker> {
                         height: 60,
                         child: const Icon(
                           Icons.location_on,
-                          color: Colors.red,
+                          color: Color.fromARGB(255, 244, 54, 54),
                           size: 50,
                         ),
                       ),

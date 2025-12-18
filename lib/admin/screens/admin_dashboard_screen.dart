@@ -1,8 +1,10 @@
 // admin/screens/admin_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../services/api_service.dart';
 import '../../utils/format_helper.dart';
+import '../../models/user.dart';
 import '../../main.dart';
 import 'users_management_screen.dart';
 import 'menu_management_screen.dart';
@@ -17,15 +19,48 @@ class AdminDashboardScreen extends StatefulWidget {
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> with SingleTickerProviderStateMixin {
+  User? _currentUser;
   Map<String, dynamic> _stats = {};
   bool _isLoading = true;
   int _selectedIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+  late AnimationController _animationController;
+  Animation<double>? _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     _loadStatistics();
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user');
+    if (userJson != null) {
+      setState(() {
+        _currentUser = User.fromJson(jsonDecode(userJson));
+      });
+    }
   }
 
   Future<void> _loadStatistics() async {
@@ -42,12 +77,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat statistik: ${e.toString()}'),
-            backgroundColor: Colors.red[700],
+            content: Text(
+              'Gagal memuat statistik: ${e.toString()}',
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -58,7 +98,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Logout',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -67,14 +107,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'Batal',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: const Text('Logout'),
@@ -88,13 +131,114 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       await prefs.clear();
 
       if (mounted) {
-        Navigator.pushAndRemoveUntil(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false,
         );
       }
     }
+  }
+
+  void _showAdminDialog() {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        20,
+        kToolbarHeight + MediaQuery.of(context).padding.top + 10,
+        MediaQuery.of(context).size.width - 280,
+        0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 8,
+      color: Colors.white,
+      items: [
+        PopupMenuItem(
+          enabled: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    child: const Icon(
+                      Icons.person,
+                      size: 28,
+                      color: Color(0xFF000000),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _currentUser?.nama ?? 'Administrator',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D3436),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _currentUser?.email ?? 'admin@catering.com',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF636E72),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+              _logout();
+            },
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(
+                    Icons.logout,
+                    size: 20,
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Logout',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   double _parseDouble(dynamic value) {
@@ -105,585 +249,337 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return 0.0;
   }
 
-  void _onNavBarTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    setState(() => _selectedIndex = index);
-
-    switch (index) {
-      case 0:
-        // Already on dashboard
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const UsersManagementScreen(),
-          ),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MenuManagementScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OrdersManagementScreen(),
-          ),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 4:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminAboutScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+  void _showStatDetail(String title, String value, String description) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        iconTheme: const IconThemeData(color: Colors.black87),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.refresh,
-                  color: Colors.black87,
-                  size: 20,
-                ),
-              ),
-              onPressed: _loadStatistics,
-            ),
-          ),
-        ],
-      ),
-      drawer: _buildModernDrawer(),
-      body: RefreshIndicator(
-        onRefresh: _loadStatistics,
-        color: Colors.black87,
-        child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.black87),
-              )
-            : SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    _buildStatsSection(),
-                    _buildQuickActionsSection(),
-                    const SizedBox(height: 80),
-                  ],
-                ),
-              ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
-    );
-  }
-
-  Widget _buildModernDrawer() {
-    return Drawer(
-      child: Container(
-        color: Colors.white,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        padding: EdgeInsets.fromLTRB(
+          24,
+          16,
+          24,
+          MediaQuery.of(context).padding.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 200,
+              width: 50,
+              height: 5,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.black87, Colors.grey[800]!],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.admin_panel_settings,
-                          size: 40,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Administrator',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'admin@catering.com',
-                        style: TextStyle(color: Colors.grey[300], fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-            const SizedBox(height: 10),
-            _buildDrawerItem(
-              icon: Icons.dashboard_rounded,
-              title: 'Dashboard',
-              onTap: () => Navigator.pop(context),
-              isSelected: true,
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            _buildDrawerItem(
-              icon: Icons.people_rounded,
-              title: 'Kelola Users',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const UsersManagementScreen(),
-                  ),
-                );
-              },
+            const SizedBox(height: 16),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF9E090F),
+              ),
             ),
-            _buildDrawerItem(
-              icon: Icons.restaurant_menu_rounded,
-              title: 'Kelola Menu',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MenuManagementScreen(),
-                  ),
-                );
-              },
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
             ),
-            _buildDrawerItem(
-              icon: Icons.shopping_bag_rounded,
-              title: 'Kelola Pesanan',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const OrdersManagementScreen(),
-                  ),
-                );
-              },
-            ),
-            _buildDrawerItem(
-              icon: Icons.info_rounded,
-              title: 'Tentang',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdminAboutScreen(),
-                  ),
-                );
-              },
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Divider(),
-            ),
-            _buildDrawerItem(
-              icon: Icons.logout_rounded,
-              title: 'Logout',
-              onTap: _logout,
-              isDestructive: true,
-            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isSelected = false,
-    bool isDestructive = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.grey[100] : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: isDestructive
-              ? Colors.red[700]
-              : (isSelected ? Colors.black87 : Colors.grey[700]),
-          size: 24,
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isDestructive
-                ? Colors.red[700]
-                : (isSelected ? Colors.black87 : Colors.grey[800]),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            fontSize: 15,
-          ),
-        ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              InkWell(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      title: const Text(
-                        'Profile',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Icon(
-                              Icons.person,
-                              color: Colors.black54,
-                              size: 40,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Administrator',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'admin@catering.com',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Tutup',
-                            style: TextStyle(color: Colors.grey),
-                          ),
+  Widget _buildDashboardPage() {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: RefreshIndicator(
+        color: const Color(0xFF000000),
+        backgroundColor: Colors.white,
+        onRefresh: _loadStatistics,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: _scrollController,
+          slivers: [
+            // Header with User Icon (EXACTLY like home_screen)
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 48, 20, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // User Icon
+                    GestureDetector(
+                      onTap: _showAdminDialog,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Color(0xFF9E090F),
+                          shape: BoxShape.circle,
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _logout();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text('Logout'),
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 24,
                         ),
-                      ],
+                      ),
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(15),
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.black54,
-                    size: 28,
-                  ),
+                    // Empty space (no cart in admin)
+                    SizedBox(width: 40, height: 40),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsSection() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Statistik',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
             ),
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // Responsive grid based on screen width
-              int crossAxisCount = 2;
-              double childAspectRatio = 1.3;
 
-              if (constraints.maxWidth > 600) {
-                crossAxisCount = 4;
-                childAspectRatio = 1.1;
-              } else if (constraints.maxWidth > 400) {
-                crossAxisCount = 2;
-                childAspectRatio = 1.3;
-              } else {
-                crossAxisCount = 2;
-                childAspectRatio = 1.2;
-              }
-
-              return GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: childAspectRatio,
-                children: [
-                  _buildModernStatCard(
-                    'Total Pesanan',
-                    '${_stats['total_pesanan'] ?? 0}',
-                    Icons.shopping_cart_rounded,
-                    const Color(0xFF6366F1),
-                  ),
-                  _buildModernStatCard(
-                    'Pending',
-                    '${_stats['pesanan_pending'] ?? 0}',
-                    Icons.pending_actions_rounded,
-                    const Color(0xFFF59E0B),
-                  ),
-                  _buildModernStatCard(
-                    'Hari Ini',
-                    '${_stats['pesanan_hari_ini'] ?? 0}',
-                    Icons.today_rounded,
-                    const Color(0xFF10B981),
-                  ),
-                  _buildModernStatCard(
-                    'Pendapatan',
-                    FormatHelper.formatCurrency(
-                      _parseDouble(_stats['total_pendapatan']),
+            // Statistics Section with 2x2 Grid
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Statistik',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                    Icons.attach_money_rounded,
-                    const Color(0xFF8B5CF6),
-                    isLarge: true,
+                    const SizedBox(height: 16),
+                    // 2x2 Grid Stats Cards
+                    _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
+                            ),
+                          )
+                        : Column(
+                            children: [
+                              // Row 1
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Total Orders',
+                                      '${_stats['total_pesanan'] ?? 0}',
+                                      Icons.shopping_bag_outlined,
+                                      const Color(0xFF9E090F),
+                                      const Color(0xFFFFF5F5),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Pending',
+                                      '${_stats['pesanan_pending'] ?? 0}',
+                                      Icons.schedule_outlined,
+                                      const Color(0xFFF59E0B),
+                                      const Color(0xFFFFFBEB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              // Row 2
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Today',
+                                      '${_stats['pesanan_hari_ini'] ?? 0}',
+                                      Icons.calendar_today_outlined,
+                                      const Color(0xFF10B981),
+                                      const Color(0xFFF0FDF4),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Revenue',
+                                      FormatHelper.formatCurrency(
+                                        _parseDouble(_stats['total_pendapatan']),
+                                      ),
+                                      Icons.trending_up_rounded,
+                                      const Color(0xFF8B5CF6),
+                                      const Color(0xFFFAF5FF),
+                                      isSmallText: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Quick Actions Header (like "Semua Makanan")
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 0)),
+
+            // Quick Actions List (only 3 actions)
+            _isLoading
+                ? const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
+                      ),
+                    ),
+                  )
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildQuickActionCard(
+                          icon: Icons.person_add_outlined,
+                          title: 'Manage New Users',
+                          subtitle: 'Approve user registrations',
+                          iconColor: const Color(0xFF667EEA),
+                          backgroundColor: const Color(0xFFF0F4FF),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const UsersManagementScreen(initialTab: 1),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildQuickActionCard(
+                          icon: Icons.restaurant_outlined,
+                          title: 'Add New Menu',
+                          subtitle: 'Create new food items',
+                          iconColor: const Color(0xFF10B981),
+                          backgroundColor: const Color(0xFFF0FDF4),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MenuManagementScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _buildQuickActionCard(
+                          icon: Icons.receipt_long_outlined,
+                          title: 'Process Orders',
+                          subtitle: 'Manage pending orders',
+                          iconColor: const Color(0xFFF59E0B),
+                          backgroundColor: const Color(0xFFFFFBEB),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const OrdersManagementScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ]),
+                    ),
                   ),
-                ],
-              );
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildModernStatCard(
+  Widget _buildStatCard(
     String title,
     String value,
     IconData icon,
-    Color color, {
-    bool isLarge = false,
+    Color iconColor,
+    Color backgroundColor, {
+    bool isSmallText = false,
   }) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 24, color: color),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: isLarge ? 14 : 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActionsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Quick Actions',
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 24, color: iconColor),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
-          _buildQuickActionCard(
-            icon: Icons.person_add_rounded,
-            title: 'Approve Users Baru',
-            subtitle: 'Kelola pendaftaran user baru',
-            color: const Color(0xFF6366F1),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const UsersManagementScreen(initialTab: 1),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildQuickActionCard(
-            icon: Icons.add_circle_rounded,
-            title: 'Tambah Menu Baru',
-            subtitle: 'Tambahkan menu makanan baru',
-            color: const Color(0xFF10B981),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MenuManagementScreen(),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildQuickActionCard(
-            icon: Icons.pending_rounded,
-            title: 'Proses Pesanan Pending',
-            subtitle: 'Kelola pesanan yang menunggu',
-            color: const Color(0xFFF59E0B),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OrdersManagementScreen(),
-                ),
-              );
-            },
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: isSmallText ? 18 : 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
           ),
         ],
       ),
@@ -694,64 +590,127 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
+    required Color iconColor,
+    required Color backgroundColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        height: 120,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Icon Section (same as menu image section)
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: Stack(
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    child: Center(
+                      child: Icon(icon, color: iconColor, size: 48),
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: Colors.grey[400],
+            // Content (same as menu content)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // Description
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                        height: 1.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    // Arrow (like menu button position)
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF9E090F),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _onNavBarTapped(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      _buildDashboardPage(),
+      UsersManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
+      MenuManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
+      OrdersManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
+      const AdminAboutScreen(),
+    ];
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: pages,
+      ),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -766,42 +725,38 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             offset: const Offset(0, -5),
           ),
         ],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavBarItem(
-                icon: Icons.dashboard_rounded,
+              _buildNavItem(
+                index: 0,
+                icon: Icons.home_rounded,
                 label: 'Dashboard',
-                isSelected: _selectedIndex == 0,
-                onTap: () => _onNavBarTapped(0),
               ),
-              _buildNavBarItem(
+              _buildNavItem(
+                index: 1,
                 icon: Icons.people_rounded,
                 label: 'Users',
-                isSelected: _selectedIndex == 1,
-                onTap: () => _onNavBarTapped(1),
               ),
-              _buildNavBarItem(
+              _buildNavItem(
+                index: 2,
                 icon: Icons.restaurant_menu_rounded,
                 label: 'Menu',
-                isSelected: _selectedIndex == 2,
-                onTap: () => _onNavBarTapped(2),
               ),
-              _buildNavBarItem(
+              _buildNavItem(
+                index: 3,
                 icon: Icons.shopping_bag_rounded,
-                label: 'Pesanan',
-                isSelected: _selectedIndex == 3,
-                onTap: () => _onNavBarTapped(3),
+                label: 'Orders',
               ),
-              _buildNavBarItem(
-                icon: Icons.info_rounded,
-                label: 'Tentang',
-                isSelected: _selectedIndex == 4,
-                onTap: () => _onNavBarTapped(4),
+              _buildNavItem(
+                index: 4,
+                icon: Icons.info_outline_rounded,
+                label: 'About',
               ),
             ],
           ),
@@ -810,44 +765,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildNavBarItem({
+  Widget _buildNavItem({
+    required int index,
     required IconData icon,
     required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.black87 : Colors.grey[400],
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected ? Colors.black87 : Colors.grey[400],
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
+    final isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onNavBarTapped(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Color(0xFF9E090F) : Colors.grey[400],
+            size: 26,
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Colors.black : Colors.grey[400],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -57,14 +57,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _tryGetCurrentLocation() async {
     try {
-      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ GPS tidak aktif. Aktifkan GPS untuk deteksi lokasi otomatis.'),
-              backgroundColor: Colors.orange,
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.location_off, color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text('GPS tidak aktif. Aktifkan GPS untuk deteksi lokasi otomatis.'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange[700],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               duration: Duration(seconds: 3),
             ),
           );
@@ -72,23 +81,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      // Check permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          return; // Permission denied, skip
+          return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        return; // Permission denied forever, skip
+        return;
       }
 
-      // Show loading indicator
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
                 SizedBox(
@@ -99,23 +106,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(width: 12),
-                Text('🔍 Mendeteksi lokasi Anda...'),
+                const SizedBox(width: 12),
+                Text('Mendeteksi lokasi Anda...'),
               ],
             ),
-            backgroundColor: Colors.blue,
+            backgroundColor: const Color(0xFF00AA13),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             duration: Duration(seconds: 15),
           ),
         );
       }
 
-      // Get current position with BEST accuracy
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         timeLimit: const Duration(seconds: 15),
       );
 
-      // If accuracy is low, try again
       if (position.accuracy > 50) {
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.bestForNavigation,
@@ -123,14 +130,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       }
 
-      // Auto-fill location if not already set
       if (_destLatController.text.isEmpty && _destLngController.text.isEmpty) {
         setState(() {
           _destLatController.text = position.latitude.toStringAsFixed(6);
           _destLngController.text = position.longitude.toStringAsFixed(6);
         });
         
-        // Auto-calculate ongkir
         _calculateOngkir();
 
         if (mounted) {
@@ -139,29 +144,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '📍 Lokasi terdeteksi! Akurasi: ${position.accuracy.toStringAsFixed(0)}m',
+                      'Lokasi terdeteksi! Akurasi: ${position.accuracy.toStringAsFixed(0)}m',
                     ),
                   ),
                 ],
               ),
-              backgroundColor: position.accuracy <= 50 ? Colors.green : Colors.orange,
+              backgroundColor: position.accuracy <= 50 ? const Color(0xFF00AA13) : Colors.orange[700],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               duration: const Duration(seconds: 3),
             ),
           );
         }
       }
     } catch (e) {
-      // Silent fail for auto-detect, but show message if timeout
       if (mounted && e.toString().contains('timeout')) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⏱️ Timeout deteksi lokasi. Silakan pilih lokasi manual di peta.'),
-            backgroundColor: Colors.orange,
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.access_time, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('Timeout deteksi lokasi. Silakan pilih lokasi manual di peta.'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             duration: Duration(seconds: 3),
           ),
         );
@@ -174,15 +190,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _destLatController.text = location.latitude.toStringAsFixed(6);
       _destLngController.text = location.longitude.toStringAsFixed(6);
     });
-    // Auto-calculate ongkir setelah lokasi dipilih
     _calculateOngkir();
   }
 
   Future<void> _calculateOngkir() async {
-    // Prefer using destination coordinates so server (heigit) can compute the route
     if (_destLatController.text.isEmpty || _destLngController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan koordinat tujuan (lat & lng) untuk menghitung ongkir')),
+        SnackBar(
+          content: Text('Masukkan koordinat tujuan untuk menghitung ongkir'),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
       return;
     }
@@ -209,7 +228,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() => _isCalculating = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menghitung ongkir: ${e.toString()}')),
+          SnackBar(
+            content: Text('Gagal menghitung ongkir: ${e.toString()}'),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
         );
       }
     }
@@ -221,6 +245,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: const Color(0xFF00AA13),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -231,6 +268,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: const Color(0xFF00AA13),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() => _selectedTime = picked);
@@ -242,14 +292,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (_ongkir == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hitung ongkir terlebih dahulu')),
+        SnackBar(
+          content: Text('Hitung ongkir terlebih dahulu'),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
       return;
     }
 
     if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data user tidak ditemukan')),
+        SnackBar(
+          content: Text('Data user tidak ditemukan'),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
       );
       return;
     }
@@ -258,7 +318,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final cart = Provider.of<CartProvider>(context, listen: false);
 
-    // Prepare items
     final items = cart.items
         .map(
           (item) => {
@@ -289,58 +348,179 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
 
       if (response['success'] == true) {
-        // Clear cart
         cart.clear();
 
-        // Show success dialog
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: const Text('Pesanan Berhasil'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            contentPadding: const EdgeInsets.all(24),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 60),
-                const SizedBox(height: 16),
-                const Text('Pesanan Anda berhasil dibuat!'),
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00AA13).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF00AA13),
+                    size: 50,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Pesanan Berhasil!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Total: ${FormatHelper.formatCurrency(response['data']['total_harga'].toDouble())}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  'Pesanan Anda sedang diproses',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Pembayaran',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      Text(
+                        FormatHelper.formatCurrency(response['data']['total_harga'].toDouble()),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Color(0xFF00AA13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00AA13),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Kembali ke Beranda',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    (route) => false,
-                  );
-                },
-                child: const Text('OK'),
-              ),
-            ],
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(response['message'] ?? 'Gagal membuat pesanan'),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required Widget child,
+    IconData? icon,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 24, color: const Color(0xFF00AA13)),
+                const SizedBox(width: 12),
+              ],
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
   }
 
   @override
@@ -350,342 +530,645 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = subtotal + _ongkir;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Order Summary
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Ringkasan Pesanan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Divider(),
-                      ...cart.items.map(
-                        (item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${item.menu.namaMenu} x${item.jumlah}',
-                                ),
-                              ),
-                              Text(FormatHelper.formatCurrency(item.subtotal)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Subtotal:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            FormatHelper.formatCurrency(subtotal),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Delivery Details
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Detail Pengiriman',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _alamatController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Alamat Pengiriman',
-                          prefixIcon: Icon(Icons.location_on),
-                          alignLabelWithHint: true,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Alamat tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _jarakController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Jarak',
-                          prefixIcon: const Icon(Icons.social_distance),
-                          suffixIcon: _isCalculating
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
+      backgroundColor: const Color(0xFFFAFAFA),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Checkout',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
+      ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Order Summary
+                  _buildSectionCard(
+                    title: 'Ringkasan Pesanan',
+                    icon: Icons.receipt_long,
+                    child: Column(
+                      children: [
+                        ...cart.items.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00AA13),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          '${item.menu.namaMenu} x${item.jumlah}',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[800],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                )
-                              : null,
-                          helperText: _isCalculating 
-                              ? 'Menghitung jarak...' 
-                              : 'Dihitung otomatis setelah pilih lokasi',
-                          border: const OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
-                            return 'Nilai jarak tidak valid';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Pilih Lokasi Pengiriman di Peta',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Ketuk peta untuk memilih lokasi pengiriman. Ongkir akan dihitung otomatis.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      
-                      // Inline Map
-                      InlineMapPicker(
-                        height: 300,
-                        initialLocation: _destLatController.text.isNotEmpty && 
-                                        _destLngController.text.isNotEmpty
-                            ? LatLng(
-                                double.tryParse(_destLatController.text) ?? -6.914744,
-                                double.tryParse(_destLngController.text) ?? 107.609810,
-                              )
-                            : null,
-                        onLocationSelected: _onLocationSelected,
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Koordinat terpilih (read-only)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _destLatController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Latitude',
-                                prefixIcon: Icon(Icons.location_on),
-                                border: OutlineInputBorder(),
-                                filled: true,
-                                fillColor: Color(0xFFF5F5F5),
-                              ),
-                              style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  FormatHelper.formatCurrency(item.subtotal),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _destLngController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Longitude',
-                                prefixIcon: Icon(Icons.location_on),
-                                border: OutlineInputBorder(),
-                                filled: true,
-                                fillColor: Color(0xFFF5F5F5),
+                        ),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Subtotal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black,
                               ),
-                              style: const TextStyle(fontSize: 12),
                             ),
-                          ),
-                        ],
-                      ),
+                            Text(
+                              FormatHelper.formatCurrency(subtotal),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      if (_ongkir > 0) ...[
+                  // Delivery Details
+                  _buildSectionCard(
+                    title: 'Detail Pengiriman',
+                    icon: Icons.local_shipping,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Alamat
+                        TextFormField(
+                          controller: _alamatController,
+                          maxLines: 3,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            labelText: 'Alamat Lengkap',
+                            labelStyle: TextStyle(color: Colors.grey[600]),
+                            hintText: 'Masukkan alamat pengiriman lengkap',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                            prefixIcon: const Icon(Icons.location_on, color: Color(0xFF00AA13)),
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF00AA13), width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[50],
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Alamat tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Map Section
+                        Text(
+                          'Pilih Lokasi di Peta',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Ketuk peta untuk menandai lokasi pengiriman Anda',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                         const SizedBox(height: 12),
+                        
+                        // Inline Map
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: InlineMapPicker(
+                            height: 280,
+                            initialLocation: _destLatController.text.isNotEmpty && 
+                                            _destLngController.text.isNotEmpty
+                                ? LatLng(
+                                    double.tryParse(_destLatController.text) ?? -6.914744,
+                                    double.tryParse(_destLngController.text) ?? 107.609810,
+                                  )
+                                : null,
+                            onLocationSelected: _onLocationSelected,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Koordinat (compact)
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.green.shade200),
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
                           ),
-                          child: Column(
+                          child: Row(
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Ongkir:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    FormatHelper.formatCurrency(_ongkir),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (_estimasiWaktu.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Estimasi waktu: $_estimasiWaktu',
+                              Icon(Icons.my_location, size: 18, color: Colors.grey[600]),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _destLatController.text.isNotEmpty && _destLngController.text.isNotEmpty
+                                      ? '${_destLatController.text}, ${_destLngController.text}'
+                                      : 'Pilih lokasi di peta',
                                   style: TextStyle(
                                     fontSize: 12,
+                                    color: _destLatController.text.isNotEmpty 
+                                        ? Colors.black87 
+                                        : Colors.grey[500],
+                                    fontFamily: 'monospace',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Jarak & Ongkir Result
+                        if (_ongkir > 0) ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF00AA13).withOpacity(0.1),
+                                  const Color(0xFF00AA13).withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF00AA13).withOpacity(0.3),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.route, color: const Color(0xFF00AA13), size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Jarak: ${_calculatedJarak.toStringAsFixed(2)} km',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.delivery_dining, color: const Color(0xFF00AA13), size: 20),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Ongkos Kirim',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      FormatHelper.formatCurrency(_ongkir),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Color(0xFF00AA13),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (_estimasiWaktu.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Estimasi: $_estimasiWaktu',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ] else if (_isCalculating) ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: const Color(0xFF00AA13),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Menghitung ongkir...',
+                                  style: TextStyle(
+                                    fontSize: 14,
                                     color: Colors.grey[700],
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 20),
+
+                        // Schedule
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Column(
+                            children: [
+                              InkWell(
+                                onTap: _selectDate,
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00AA13).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: const Icon(
+                                          Icons.calendar_today,
+                                          color: Color(0xFF00AA13),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Tanggal Pengiriman',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              FormatHelper.formatDateWithMonth(_selectedDate),
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.grey[400]),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Divider(height: 1, color: Colors.grey[300]),
+                              InkWell(
+                                onTap: _selectTime,
+                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00AA13).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: const Icon(
+                                          Icons.access_time,
+                                          color: Color(0xFF00AA13),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Waktu Pengiriman',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _selectedTime.format(context),
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(Icons.chevron_right, color: Colors.grey[400]),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ],
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 20),
 
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.calendar_today),
-                        title: const Text('Tanggal Pengiriman'),
-                        subtitle: Text(
-                          FormatHelper.formatDateWithMonth(_selectedDate),
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: _selectDate,
-                      ),
-
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.access_time),
-                        title: const Text('Waktu Pengiriman'),
-                        subtitle: Text(_selectedTime.format(context)),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: _selectTime,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _catatanController,
-                        maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'Catatan (Opsional)',
-                          prefixIcon: Icon(Icons.note),
-                          alignLabelWithHint: true,
-                          hintText: 'Contoh: Jangan terlalu pedas',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Total
-              Card(
-                color: Colors.orange.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Total Pembayaran:',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        FormatHelper.formatCurrency(total),
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _isSubmitting ? null : _submitOrder,
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                        // Catatan
+                        TextFormField(
+                          controller: _catatanController,
+                          maxLines: 3,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            labelText: 'Catatan (Opsional)',
+                            labelStyle: TextStyle(color: Colors.grey[600]),
+                            hintText: 'Contoh: Jangan terlalu pedas, tanpa bawang',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                            prefixIcon: const Icon(Icons.note_alt, color: Color(0xFF00AA13)),
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF00AA13), width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[50],
                           ),
-                        )
-                      : const Icon(Icons.check_circle),
-                  label: Text(
-                    _isSubmitting ? 'Memproses...' : 'Buat Pesanan',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 100), // Space for bottom bar
+                ],
+              ),
+            ),
+          ),
+
+          // Fixed Bottom Bar
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Detail Breakdown
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Subtotal Pesanan',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              Text(
+                                FormatHelper.formatCurrency(subtotal),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Ongkos Kirim',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  if (_calculatedJarak > 0) ...[
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '(${_calculatedJarak.toStringAsFixed(1)} km)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              Text(
+                                _ongkir > 0 
+                                    ? FormatHelper.formatCurrency(_ongkir) 
+                                    : 'Rp 0',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Pembayaran',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                FormatHelper.formatCurrency(total),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF00AA13),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Tombol Pesan
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _submitOrder,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isSubmitting 
+                              ? Colors.grey[400] 
+                              : const Color(0xFF00AA13),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.shopping_bag, size: 22),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Buat Pesanan',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

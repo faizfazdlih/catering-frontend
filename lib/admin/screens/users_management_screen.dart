@@ -8,7 +8,8 @@ import 'admin_about_screen.dart';
 
 class UsersManagementScreen extends StatefulWidget {
   final int initialTab;
-  const UsersManagementScreen({Key? key, this.initialTab = 0})
+  final VoidCallback? onBackPressed;
+  const UsersManagementScreen({Key? key, this.initialTab = 0, this.onBackPressed})
     : super(key: key);
 
   @override
@@ -25,7 +26,6 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
   String _searchQuery = '';
   String _filterRole = 'all';
   String _filterStatus = 'all';
-  int _selectedIndex = 1;
 
   @override
   void initState() {
@@ -57,12 +57,17 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memuat data: ${e.toString()}'),
-            backgroundColor: Colors.red[700],
+            content: Text(
+              'Gagal memuat data: ${e.toString()}',
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -97,9 +102,14 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       builder: (context) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          16,
+          24,
+          MediaQuery.of(context).padding.bottom + 24,
+        ),
         child: StatefulBuilder(
           builder: (context, setModalState) => Column(
             mainAxisSize: MainAxisSize.min,
@@ -107,24 +117,24 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
             children: [
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 50,
+                  height: 5,
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Filter Users',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Colors.black,
                     ),
                   ),
                   TextButton(
@@ -139,10 +149,10 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                       });
                       _applyFilters();
                     },
-                    child: const Text(
+                    child: Text(
                       'Reset',
                       style: TextStyle(
-                        color: Colors.black87,
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -154,8 +164,8 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                 'Role',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  color: Colors.black87,
+                  fontSize: 14,
+                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 12),
@@ -179,8 +189,8 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                 'Status',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                  color: Colors.black87,
+                  fontSize: 14,
+                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 12),
@@ -221,7 +231,8 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black87,
+                    backgroundColor: const Color(0xFF9E090F),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -234,7 +245,6 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                   ),
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
             ],
           ),
         ),
@@ -256,10 +266,10 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
         if (selected) onSelected(value);
       },
       backgroundColor: Colors.grey[100],
-      selectedColor: Colors.black87,
+      selectedColor: const Color(0xFF9E090F),
       checkmarkColor: Colors.white,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black87,
+        color: isSelected ? Colors.white : Colors.black,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         fontSize: 13,
       ),
@@ -267,7 +277,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(
-          color: isSelected ? Colors.black87 : Colors.grey[300]!,
+          color: isSelected ? const Color(0xFF9E090F) : Colors.grey[300]!,
         ),
       ),
     );
@@ -277,7 +287,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           status == 'approved' ? 'Approve User' : 'Reject User',
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -288,14 +298,16 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: Text('Batal', style: TextStyle(color: Colors.grey[600])),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: status == 'approved' ? Colors.green : Colors.red,
+              backgroundColor: status == 'approved' 
+                  ? const Color(0xFF10B981) 
+                  : const Color(0xFFEF4444),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: Text(status == 'approved' ? 'Approve' : 'Reject'),
@@ -311,14 +323,17 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message']),
-            backgroundColor: response['success'] == true
-                ? Colors.green
-                : Colors.red,
+            content: Text(
+              response['message'],
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
         if (response['success'] == true) {
@@ -329,12 +344,17 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text(
+              'Error: ${e.toString()}',
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -345,7 +365,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
     final newRole = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Ubah Role User',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -362,7 +382,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: Text('Batal', style: TextStyle(color: Colors.grey[600])),
           ),
         ],
       ),
@@ -375,14 +395,17 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message']),
-            backgroundColor: response['success'] == true
-                ? Colors.green
-                : Colors.red,
+            content: Text(
+              response['message'],
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
         if (response['success'] == true) {
@@ -393,12 +416,17 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text(
+              'Error: ${e.toString()}',
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -413,7 +441,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: currentRole == value ? Colors.black87 : Colors.grey[100],
+          color: currentRole == value ? const Color(0xFF9E090F) : Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -428,7 +456,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
             Text(
               label,
               style: TextStyle(
-                color: currentRole == value ? Colors.white : Colors.black87,
+                color: currentRole == value ? Colors.white : Colors.black,
                 fontWeight: currentRole == value
                     ? FontWeight.w600
                     : FontWeight.normal,
@@ -479,186 +507,140 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
     }
   }
 
-  void _onNavBarTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    setState(() => _selectedIndex = index);
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-        );
-        break;
-      case 1:
-        // Already on users screen
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MenuManagementScreen()),
-        );
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OrdersManagementScreen(),
-          ),
-        );
-        break;
-      case 4:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminAboutScreen()),
-        );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: widget.onBackPressed ?? () => Navigator.pop(context),
         ),
         title: const Text(
           'Kelola Users',
           style: TextStyle(
-            color: Colors.black87,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.refresh,
-                  color: Colors.black87,
-                  size: 20,
-                ),
-              ),
-              onPressed: _loadData,
-            ),
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextField(
-                            onChanged: (value) {
-                              setState(() => _searchQuery = value);
-                              _applyFilters();
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Cari nama atau email...',
-                              hintStyle: TextStyle(color: Colors.grey[500]),
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: Colors.grey[600],
+      body: RefreshIndicator(
+        color: const Color(0xFF9E090F),
+        backgroundColor: Colors.white,
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Container(
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F5),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
+                              child: TextField(
+                                onChanged: (value) {
+                                  setState(() => _searchQuery = value);
+                                  _applyFilters();
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Cari nama atau email...',
+                                  hintStyle: TextStyle(color: Colors.grey[500]),
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    color: Colors.grey[600],
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 10),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: (_filterRole != 'all' || _filterStatus != 'all')
+                                  ? const Color(0xFF9E090F)
+                                  : const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.filter_list_rounded,
+                                color: (_filterRole != 'all' || _filterStatus != 'all')
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                              onPressed: _showFilterDialog,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          color:
-                              (_filterRole != 'all' || _filterStatus != 'all')
-                              ? Colors.black87
-                              : Colors.grey[100],
+                    ),
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          color: const Color(0xFF9E090F),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.filter_list_rounded,
-                            color:
-                                (_filterRole != 'all' || _filterStatus != 'all')
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                          onPressed: _showFilterDialog,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.grey[600],
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        tabs: [
+                          Tab(text: 'Semua (${_filteredUsers.length})'),
+                          Tab(text: 'Pending (${_pendingUsers.length})'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            _isLoading
+                ? SliverFillRemaining(
+                    child: Container(
+                      color: const Color(0xFFFAFAFA),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(12),
                     ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[600],
-                    labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    tabs: [
-                      Tab(text: 'Semua (${_filteredUsers.length})'),
-                      Tab(text: 'Pending (${_pendingUsers.length})'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.black87),
                   )
-                : TabBarView(
-                    controller: _tabController,
-                    children: [_buildAllUsersList(), _buildPendingUsersList()],
+                : SliverFillRemaining(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [_buildAllUsersList(), _buildPendingUsersList()],
+                    ),
                   ),
-          ),
-        ],
+          ],
+        ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -705,7 +687,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: Colors.black87,
+      color: const Color(0xFF9E090F),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _filteredUsers.length,
@@ -726,7 +708,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: const Color(0xFFF0FDF4),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -741,7 +723,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 8),
@@ -756,7 +738,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: Colors.black87,
+      color: const Color(0xFF9E090F),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _pendingUsers.length,
@@ -780,9 +762,9 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -832,7 +814,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: Colors.black,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -888,7 +870,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                                   ),
                                   decoration: BoxDecoration(
                                     color: user['role'] == 'admin'
-                                        ? Colors.black87
+                                        ? Colors.black
                                         : Colors.grey[200],
                                     borderRadius: BorderRadius.circular(6),
                                   ),
@@ -940,7 +922,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
                           icon: const Icon(Icons.swap_horiz_rounded, size: 18),
                           label: const Text('Ubah Role'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.black87,
+                            foregroundColor: Colors.black,
                             side: BorderSide(color: Colors.grey[300]!),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -1018,103 +1000,6 @@ class _UsersManagementScreenState extends State<UsersManagementScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavBarItem(
-                icon: Icons.dashboard_rounded,
-                label: 'Dashboard',
-                isSelected: _selectedIndex == 0,
-                onTap: () => _onNavBarTapped(0),
-              ),
-              _buildNavBarItem(
-                icon: Icons.people_rounded,
-                label: 'Users',
-                isSelected: _selectedIndex == 1,
-                onTap: () => _onNavBarTapped(1),
-              ),
-              _buildNavBarItem(
-                icon: Icons.restaurant_menu_rounded,
-                label: 'Menu',
-                isSelected: _selectedIndex == 2,
-                onTap: () => _onNavBarTapped(2),
-              ),
-              _buildNavBarItem(
-                icon: Icons.shopping_bag_rounded,
-                label: 'Pesanan',
-                isSelected: _selectedIndex == 3,
-                onTap: () => _onNavBarTapped(3),
-              ),
-              _buildNavBarItem(
-                icon: Icons.info_rounded,
-                label: 'Tentang',
-                isSelected: _selectedIndex == 4,
-                onTap: () => _onNavBarTapped(4),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavBarItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.black87 : Colors.grey[400],
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected ? Colors.black87 : Colors.grey[400],
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

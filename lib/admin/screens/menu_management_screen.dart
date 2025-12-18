@@ -11,7 +11,8 @@ import 'orders_management_screen.dart';
 import 'admin_about_screen.dart';
 
 class MenuManagementScreen extends StatefulWidget {
-  const MenuManagementScreen({Key? key}) : super(key: key);
+  final VoidCallback? onBackPressed;
+  const MenuManagementScreen({Key? key, this.onBackPressed}) : super(key: key);
 
   @override
   State<MenuManagementScreen> createState() => _MenuManagementScreenState();
@@ -20,7 +21,6 @@ class MenuManagementScreen extends StatefulWidget {
 class _MenuManagementScreenState extends State<MenuManagementScreen> {
   List<Menu> _menuList = [];
   bool _isLoading = true;
-  int _selectedIndex = 2; // Menu tab selected
 
   @override
   void initState() {
@@ -152,86 +152,31 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     }
   }
 
-  void _onNavBarTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    setState(() => _selectedIndex = index);
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const UsersManagementScreen(),
-          ),
-        );
-        break;
-      case 2:
-        // Already on menu screen
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OrdersManagementScreen(),
-          ),
-        );
-        break;
-      case 4:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminAboutScreen()),
-        );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false, // Menghapus tombol back
+        backgroundColor: const Color(0xFFFAFAFA),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: widget.onBackPressed ?? () => Navigator.pop(context),
+        ),
         title: const Text(
           'Kelola Menu',
           style: TextStyle(
-            color: Colors.black87,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.refresh,
-                  color: Colors.black87,
-                  size: 20,
-                ),
-              ),
-              onPressed: _loadMenu,
-            ),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Colors.black87),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
+              ),
             )
           : _menuList.isEmpty
           ? Center(
@@ -256,7 +201,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -270,7 +215,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                     icon: const Icon(Icons.add),
                     label: const Text('Tambah Menu'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
+                      backgroundColor: const Color(0xFF9E090F),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -286,7 +231,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             )
           : RefreshIndicator(
               onRefresh: _loadMenu,
-              color: Colors.black87,
+              color: const Color(0xFF9E090F),
+              backgroundColor: Colors.white,
               child: ListView.builder(
                 padding: const EdgeInsets.all(20),
                 itemCount: _menuList.length + 1, // +1 for bottom padding
@@ -299,179 +245,214 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
+                    height: 120,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(12),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: menu.fotoUrl != null && menu.fotoUrl!.isNotEmpty
-                            ? Image.network(
-                                ApiService.getImageUrl(menu.fotoUrl),
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    width: 70,
-                                    height: 70,
+                    child: Row(
+                      children: [
+                        // Image Section (like dashboard quick actions)
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              bottomLeft: Radius.circular(16),
+                            ),
+                            child: menu.fotoUrl != null && menu.fotoUrl!.isNotEmpty
+                                ? Image.network(
+                                    ApiService.getImageUrl(menu.fotoUrl),
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 120,
+                                        height: 120,
+                                        color: Colors.grey[100],
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          color: Colors.grey[400],
+                                          size: 40,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    width: 120,
+                                    height: 120,
                                     color: Colors.grey[100],
                                     child: Icon(
                                       Icons.restaurant,
                                       color: Colors.grey[400],
-                                      size: 30,
+                                      size: 40,
                                     ),
-                                  );
-                                },
-                              )
-                            : Container(
-                                width: 70,
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.restaurant,
-                                  color: Colors.grey[400],
-                                  size: 30,
-                                ),
-                              ),
-                      ),
-                      title: Text(
-                        menu.namaMenu,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 6),
-                          Text(
-                            menu.deskripsi ?? '-',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            FormatHelper.formatCurrency(menu.harga),
-                            style: const TextStyle(
-                              color: Color(0xFF10B981),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF6366F1,
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  menu.kategori ?? '-',
-                                  style: const TextStyle(
-                                    color: Color(0xFF6366F1),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: menu.status == 'tersedia'
-                                      ? const Color(0xFF10B981).withOpacity(0.1)
-                                      : Colors.red.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  menu.status,
-                                  style: TextStyle(
-                                    color: menu.status == 'tersedia'
-                                        ? const Color(0xFF10B981)
-                                        : Colors.red,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
                         ),
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
+                        // Content Section (like dashboard quick actions)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.edit_rounded,
-                                  size: 20,
-                                  color: Colors.grey[700],
-                                ),
-                                const SizedBox(width: 12),
-                                const Text('Edit'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.delete_rounded,
-                                  size: 20,
-                                  color: Colors.red[700],
-                                ),
-                                const SizedBox(width: 12),
+                                // Title
                                 Text(
-                                  'Hapus',
-                                  style: TextStyle(color: Colors.red[700]),
+                                  menu.namaMenu,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                // Description
+                                Text(
+                                  menu.deskripsi ?? '-',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Spacer(),
+                                // Price and Actions Row
+                                Row(
+                                  children: [
+                                    // Price
+                                    Text(
+                                      FormatHelper.formatCurrency(menu.harga),
+                                      style: const TextStyle(
+                                        color: Color(0xFF10B981),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Category Badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF667EEA).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        menu.kategori ?? '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF667EEA),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    // Status Badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: menu.status == 'tersedia'
+                                            ? const Color(0xFF10B981).withOpacity(0.1)
+                                            : Colors.red.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        menu.status,
+                                        style: TextStyle(
+                                          color: menu.status == 'tersedia'
+                                              ? const Color(0xFF10B981)
+                                              : Colors.red,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    // Menu Button
+                                    PopupMenuButton(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      icon: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          Icons.more_vert,
+                                          size: 18,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      itemBuilder: (context) => [
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.edit_rounded,
+                                                size: 20,
+                                                color: Colors.grey[700],
+                                              ),
+                                              const SizedBox(width: 12),
+                                              const Text('Edit'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.delete_rounded,
+                                                size: 20,
+                                                color: Colors.red[700],
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'Hapus',
+                                                style: TextStyle(color: Colors.red[700]),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          _showEditMenuDialog(menu);
+                                        } else if (value == 'delete') {
+                                          _deleteMenu(menu);
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            _showEditMenuDialog(menu);
-                          } else if (value == 'delete') {
-                            _deleteMenu(menu);
-                          }
-                        },
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -482,113 +463,17 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
               onPressed: _showAddMenuDialog,
               icon: const Icon(Icons.add),
               label: const Text('Tambah Menu'),
-              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              backgroundColor: const Color(0xFF9E090F),
+              foregroundColor: Colors.white,
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             )
           : null,
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavBarItem(
-                icon: Icons.dashboard_rounded,
-                label: 'Dashboard',
-                isSelected: _selectedIndex == 0,
-                onTap: () => _onNavBarTapped(0),
-              ),
-              _buildNavBarItem(
-                icon: Icons.people_rounded,
-                label: 'Users',
-                isSelected: _selectedIndex == 1,
-                onTap: () => _onNavBarTapped(1),
-              ),
-              _buildNavBarItem(
-                icon: Icons.restaurant_menu_rounded,
-                label: 'Menu',
-                isSelected: _selectedIndex == 2,
-                onTap: () => _onNavBarTapped(2),
-              ),
-              _buildNavBarItem(
-                icon: Icons.shopping_bag_rounded,
-                label: 'Pesanan',
-                isSelected: _selectedIndex == 3,
-                onTap: () => _onNavBarTapped(3),
-              ),
-              _buildNavBarItem(
-                icon: Icons.info_rounded,
-                label: 'Tentang',
-                isSelected: _selectedIndex == 4,
-                onTap: () => _onNavBarTapped(4),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavBarItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.black87 : Colors.grey[400],
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: isSelected ? Colors.black87 : Colors.grey[400],
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ============================================================================
@@ -681,12 +566,12 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  color: const Color(0xFF667EEA).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.photo_library_rounded,
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF667EEA),
                 ),
               ),
               title: const Text('Galeri'),
@@ -824,7 +709,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -916,7 +801,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
                                 right: 12,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1),
+                                    color: const Color(0xFF667EEA),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   padding: const EdgeInsets.symmetric(
@@ -1037,7 +922,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
                           icon: const Icon(Icons.edit_rounded, size: 18),
                           label: const Text('Ganti'),
                           style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF6366F1),
+                            foregroundColor: const Color(0xFF667EEA),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -1210,7 +1095,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
                     ElevatedButton(
                       onPressed: _isLoading ? null : _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black87,
+                        backgroundColor: const Color(0xFF9E090F),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,

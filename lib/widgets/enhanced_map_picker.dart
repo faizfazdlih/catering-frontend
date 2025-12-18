@@ -307,23 +307,23 @@ class _EnhancedMapPickerState extends State<EnhancedMapPicker> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFFAFAFA),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           if (_selectedLocation != null)
             IconButton(
-              icon: const Icon(Icons.check, color: Colors.white),
+              icon: const Icon(Icons.check, color: Colors.black),
               onPressed: _confirmLocation,
               tooltip: 'Konfirmasi',
             ),
