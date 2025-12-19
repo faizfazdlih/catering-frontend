@@ -249,7 +249,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: const Color(0xFF00AA13),
+              primary: const Color(0xFF9E090F),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -272,7 +272,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: const Color(0xFF00AA13),
+              primary: const Color(0xFF9E090F),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -365,12 +365,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00AA13).withOpacity(0.1),
+                    color: Colors.white.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.check_circle,
-                    color: Color(0xFF00AA13),
+                    color: Color(0xFF9E090F),
                     size: 50,
                   ),
                 ),
@@ -413,7 +413,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
-                          color: Color(0xFF00AA13),
+                          color: Color(0xFF9E090F),
                         ),
                       ),
                     ],
@@ -432,7 +432,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00AA13),
+                      backgroundColor: const Color(0xFF9E090F),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -503,7 +503,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 24, color: const Color(0xFF00AA13)),
+                Icon(icon, size: 24, color: const Color(0xFF9E090F)),
                 const SizedBox(width: 12),
               ],
               Text(
@@ -575,7 +575,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                         width: 8,
                                         height: 8,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF00AA13),
+                                          color: const Color(0xFF9E090F),
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -647,7 +647,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             labelStyle: TextStyle(color: Colors.grey[600]),
                             hintText: 'Masukkan alamat pengiriman lengkap',
                             hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                            prefixIcon: const Icon(Icons.location_on, color: Color(0xFF00AA13)),
+                            prefixIcon: const Icon(Icons.location_on, color: Color(0xFF9E090F)),
                             alignLabelWithHint: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -659,7 +659,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF00AA13), width: 2),
+                              borderSide: const BorderSide(color: Color(0xFF9E090F), width: 2),
                             ),
                             filled: true,
                             fillColor: Colors.grey[50],
@@ -751,15 +751,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF00AA13).withOpacity(0.1),
-                                  const Color(0xFF00AA13).withOpacity(0.05),
+                                  const Color(0xFF9E090F).withOpacity(0.1),
+                                  const Color(0xFF9E090F).withOpacity(0.05),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFF00AA13).withOpacity(0.3),
+                                color: const Color(0xFF9E090F).withOpacity(0.3),
                                 width: 1.5,
                               ),
                             ),
@@ -767,7 +767,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.route, color: const Color(0xFF00AA13), size: 20),
+                                    Icon(Icons.route, color: const Color(0xFF9E090F), size: 20),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Jarak: ${_calculatedJarak.toStringAsFixed(2)} km',
@@ -785,7 +785,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(Icons.delivery_dining, color: const Color(0xFF00AA13), size: 20),
+                                        Icon(Icons.delivery_dining, color: const Color(0xFF9E090F), size: 20),
                                         const SizedBox(width: 8),
                                         const Text(
                                           'Ongkos Kirim',
@@ -802,7 +802,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: Color(0xFF00AA13),
+                                        color: Color(0xFF9E090F),
                                       ),
                                     ),
                                   ],
@@ -841,7 +841,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: const Color(0xFF00AA13),
+                                    color: const Color(0xFF9E090F),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -878,12 +878,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF00AA13).withOpacity(0.1),
+                                          color: const Color(0xFF9E090F).withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: const Icon(
                                           Icons.calendar_today,
-                                          color: Color(0xFF00AA13),
+                                          color: Color(0xFF9E090F),
                                           size: 20,
                                         ),
                                       ),
@@ -927,12 +927,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF00AA13).withOpacity(0.1),
+                                          color: const Color(0xFF9E090F).withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: const Icon(
                                           Icons.access_time,
-                                          color: Color(0xFF00AA13),
+                                          color: Color(0xFF9E090F),
                                           size: 20,
                                         ),
                                       ),
@@ -981,7 +981,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             labelStyle: TextStyle(color: Colors.grey[600]),
                             hintText: 'Contoh: Jangan terlalu pedas, tanpa bawang',
                             hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
-                            prefixIcon: const Icon(Icons.note_alt, color: Color(0xFF00AA13)),
+                            prefixIcon: const Icon(Icons.note_alt, color: Color(0xFF9E090F)),
                             alignLabelWithHint: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -993,7 +993,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF00AA13), width: 2),
+                              borderSide: const BorderSide(color: Color(0xFF9E090F), width: 2),
                             ),
                             filled: true,
                             fillColor: Colors.grey[50],
@@ -1113,7 +1113,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF00AA13),
+                                  color: Color(0xFF9E090F),
                                 ),
                               ),
                             ],
@@ -1131,7 +1131,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isSubmitting 
                               ? Colors.grey[400] 
-                              : const Color(0xFF00AA13),
+                              : const Color(0xFF9E090F),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

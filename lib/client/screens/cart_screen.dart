@@ -251,7 +251,7 @@ class _CartScreenState extends State<CartScreen> {
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Color(0xFF9E090F),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -291,7 +291,7 @@ class _CartScreenState extends State<CartScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected 
-                                ? const Color(0xFF00AA13).withOpacity(0.3) 
+                                ? const Color(0xFF9E090F).withOpacity(0.3) 
                                 : Colors.transparent,
                             width: 1.5,
                           ),
@@ -313,11 +313,11 @@ class _CartScreenState extends State<CartScreen> {
                                 height: 24,
                                 decoration: BoxDecoration(
                                   color: isSelected 
-                                      ? const Color(0xFF00AA13) 
+                                      ? const Color(0xFF9E090F) 
                                       : Colors.white,
                                   border: Border.all(
                                     color: isSelected 
-                                        ? const Color(0xFF00AA13) 
+                                        ? const Color(0xFF9E090F) 
                                         : Colors.grey[400]!,
                                     width: 2,
                                   ),
@@ -532,11 +532,11 @@ class _CartScreenState extends State<CartScreen> {
                                 height: 24,
                                 decoration: BoxDecoration(
                                   color: selectAll 
-                                      ? const Color(0xFF00AA13) 
+                                      ? const Color(0xFF9E090F) 
                                       : Colors.white,
                                   border: Border.all(
                                     color: selectAll 
-                                        ? const Color(0xFF00AA13) 
+                                        ? const Color(0xFF9E090F) 
                                         : Colors.grey[400]!,
                                     width: 2,
                                   ),
@@ -603,7 +603,7 @@ class _CartScreenState extends State<CartScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: selectedItems.isEmpty 
                                   ? Colors.grey[300] 
-                                  : const Color(0xFF00AA13),
+                                  : const Color(0xFF9E090F),
                               foregroundColor: selectedItems.isEmpty 
                                   ? Colors.grey[500] 
                                   : Colors.white,

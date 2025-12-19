@@ -87,7 +87,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Catering App',
+                      'Serveman Catering',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -95,10 +95,6 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Versi 1.0.0',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Aplikasi pemesanan catering online dengan sistem client-admin yang memudahkan pelanggan memesan makanan dan admin mengelola pesanan.',
@@ -355,6 +351,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.85,
                 children: [
+                  _buildTeamMemberCard('Dindin Imanudin', '152023073'),
                   _buildTeamMemberCard('Riandika Fildani', '152023062'),
                   _buildTeamMemberCard(
                     'Faiz Fazdlih Dwi Putra Pambudi',

@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: const Color(0xFF9E090F),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text('Logout'),
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Icon(
                     Icons.logout,
                     size: 20,
-                    color: Colors.red,
+                    color: const Color(0xFF9E090F),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: const Color(0xFF9E090F),
                   ),
                 ),
               ],

@@ -115,18 +115,6 @@ class _AdminAboutScreenState extends State<AdminAboutScreen> {
                       horizontal: 12,
                       vertical: 4,
                     ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF9E090F),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'v1.0.0',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -391,12 +379,6 @@ class _AdminAboutScreenState extends State<AdminAboutScreen> {
               child: Column(
                 children: [
                   _buildSystemInfoRow(
-                    Icons.verified_rounded,
-                    'Version',
-                    '1.0.0',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSystemInfoRow(
                     Icons.rocket_launch_rounded,
                     'Build',
                     'Production',
@@ -425,105 +407,23 @@ class _AdminAboutScreenState extends State<AdminAboutScreen> {
             ),
             const SizedBox(height: 12),
 
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFF9E090F), const Color(0xFF9E090F).withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF9E090F).withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.group_rounded,
-                      size: 45,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Tim Pengembang',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Institut Teknologi Nasional Bandung',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Program Studi Informatika',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAFAFA),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'UTS Pemrograman Mobile',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Semester Ganjil 2024/2025',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.85,
+              children: [
+                _buildTeamMemberCard('Dindin Imanudin', '152023073'),
+                _buildTeamMemberCard('Riandika Fildani', '152023062'),
+                _buildTeamMemberCard(
+                  'Faiz Fazdlih Dwi Putra Pambudi',
+                  '152023080',
+                ),
+                _buildTeamMemberCard('Arsyad Effendi', '152023107'),
+                _buildTeamMemberCard('Fachrisan Dimas Narendra', '152023111'),
+              ],
             ),
 
             const SizedBox(height: 32),
@@ -531,7 +431,7 @@ class _AdminAboutScreenState extends State<AdminAboutScreen> {
             // Copyright
             Center(
               child: Text(
-                '© 2024 Catering App. All rights reserved.',
+                '© 2025 Serveman Catering. All rights reserved.',
                 style: TextStyle(
                   color: Colors.grey[500],
                   fontSize: 12,
@@ -544,6 +444,69 @@ class _AdminAboutScreenState extends State<AdminAboutScreen> {
         ),
       ),
     ),
+    );
+  }
+
+  Widget _buildTeamMemberCard(String name, String nrp) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: const Color(0xFF9E090F),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 32,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              nrp,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
