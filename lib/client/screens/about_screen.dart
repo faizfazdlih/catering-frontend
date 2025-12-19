@@ -76,7 +76,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.black,
+                        color: const Color(0xFF9E090F),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Icon(
@@ -198,7 +198,9 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                   child: const Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF9E090F),
+                      ),
                     ),
                   ),
                 )
@@ -224,7 +226,7 @@ class _AboutScreenState extends State<AboutScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.black,
+                              color: const Color(0xFF9E090F),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
@@ -265,7 +267,7 @@ class _AboutScreenState extends State<AboutScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.black,
+                                color: const Color(0xFF9E090F),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -333,9 +335,9 @@ class _AboutScreenState extends State<AboutScreen> {
 
               const SizedBox(height: 24),
 
-              // Developer Info
+              // Developer Info Header
               const Text(
-                'Developer',
+                'Tim Pengembang',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -344,87 +346,23 @@ class _AboutScreenState extends State<AboutScreen> {
               ),
               const SizedBox(height: 12),
 
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.group_rounded,
-                        size: 40,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Tim Pengembang',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Institut Teknologi Nasional Bandung',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Program Studi Informatika',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFAFAFA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'UTS Pemrograman Mobile',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Semester Ganjil 2024/2025',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              // Team Member Cards - Grid 2 kolom
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
+                children: [
+                  _buildTeamMemberCard('Riandika Fildani', '152023062'),
+                  _buildTeamMemberCard(
+                    'Faiz Fazdlih Dwi Putra Pambudi',
+                    '152023080',
+                  ),
+                  _buildTeamMemberCard('Arsyad Effendi', '152023107'),
+                  _buildTeamMemberCard('Fachrisan Dimas Narendra', '152023111'),
+                ],
               ),
 
               const SizedBox(height: 32),
@@ -432,7 +370,7 @@ class _AboutScreenState extends State<AboutScreen> {
               // Copyright
               Center(
                 child: Text(
-                  '© 2024 Catering App. All rights reserved.',
+                  '© 2025 Catering App. All rights reserved.',
                   style: TextStyle(color: Colors.grey[500], fontSize: 12),
                 ),
               ),
@@ -441,6 +379,69 @@ class _AboutScreenState extends State<AboutScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTeamMemberCard(String name, String nrp) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: const Color(0xFF9E090F),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 32,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              nrp,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -467,7 +468,7 @@ class _AboutScreenState extends State<AboutScreen> {
               color: const Color(0xFFFAFAFA),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.black, size: 24),
+            child: Icon(icon, color: const Color(0xFF9E090F), size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -542,7 +543,7 @@ class _AboutScreenState extends State<AboutScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.black,
+            color: const Color(0xFF9E090F),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(

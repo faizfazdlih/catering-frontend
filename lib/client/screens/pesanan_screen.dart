@@ -216,7 +216,7 @@ class _PesananScreenState extends State<PesananScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: RefreshIndicator(
-        color: const Color(0xFF000000),
+        color: Colors.black,
         backgroundColor: Colors.white,
         onRefresh: () => _loadPesanan(_currentUser!.id),
         child: CustomScrollView(
@@ -259,7 +259,9 @@ class _PesananScreenState extends State<PesananScreen> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.black : Colors.grey[200],
+                            color: isSelected
+                                ? const Color(0xFF9E090F)
+                                : Colors.grey[200],
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Center(
@@ -290,7 +292,7 @@ class _PesananScreenState extends State<PesananScreen> {
                     child: Center(
                       child: CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFFFF6B35),
+                          Color(0xFF9E090F),
                         ),
                       ),
                     ),
@@ -364,62 +366,22 @@ class _PesananScreenState extends State<PesananScreen> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    // Left Side - Icon with Status Badge
-                                    SizedBox(
+                                    // Left Side - Icon (tanpa badge)
+                                    Container(
                                       width: 100,
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[100],
-                                              borderRadius:
-                                                  const BorderRadius.only(
-                                                    topLeft: Radius.circular(
-                                                      16,
-                                                    ),
-                                                    bottomLeft: Radius.circular(
-                                                      16,
-                                                    ),
-                                                  ),
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons.receipt_long,
-                                                size: 40,
-                                                color: Colors.grey[300],
-                                              ),
-                                            ),
-                                          ),
-                                          // Status Badge
-                                          Positioned(
-                                            top: 8,
-                                            left: 8,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: _getStatusColor(
-                                                  pesanan.status,
-                                                ).withOpacity(0.9),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Text(
-                                                _getStatusText(
-                                                  pesanan.status,
-                                                ).toUpperCase(),
-                                                style: const TextStyle(
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16),
+                                          bottomLeft: Radius.circular(16),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.receipt_long,
+                                          size: 40,
+                                          color: Colors.grey[300],
+                                        ),
                                       ),
                                     ),
                                     // Right Side - Content
@@ -431,15 +393,67 @@ class _PesananScreenState extends State<PesananScreen> {
                                               CrossAxisAlignment.start,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text(
-                                              'Pesanan #${pesanan.id}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: Colors.black,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                            // Row untuk Pesanan ID dan Status Badge
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Pesanan ID
+                                                Expanded(
+                                                  child: Text(
+                                                    'Pesanan #${pesanan.id}',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 14,
+                                                      color: Colors.black,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                // Status Badge (dipindah ke kanan)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: _getStatusColor(
+                                                      pesanan.status,
+                                                    ).withOpacity(0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: _getStatusColor(
+                                                        pesanan.status,
+                                                      ).withOpacity(0.3),
+                                                      width: 1,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    _getStatusText(
+                                                      pesanan.status,
+                                                    ).toUpperCase(),
+                                                    style: TextStyle(
+                                                      fontSize: 9,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: _getStatusColor(
+                                                        pesanan.status,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(height: 4),
                                             // Date & Time
@@ -479,7 +493,7 @@ class _PesananScreenState extends State<PesananScreen> {
                                                       pesanan.totalHarga,
                                                     ),
                                                     style: const TextStyle(
-                                                      color: Color(0xFFFF6B35),
+                                                      color: Color(0xFF9E090F),
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 15,
@@ -533,7 +547,7 @@ class _PesananScreenState extends State<PesananScreen> {
                                                   pesanan.totalHarga,
                                                 ),
                                                 style: const TextStyle(
-                                                  color: Color(0xFFFF6B35),
+                                                  color: Color(0xFF9E090F),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 15,
                                                 ),
