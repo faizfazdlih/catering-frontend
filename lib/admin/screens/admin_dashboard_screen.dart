@@ -11,6 +11,7 @@ import 'menu_management_screen.dart';
 import 'orders_management_screen.dart';
 import 'admin_about_screen.dart';
 import '../../screens/login_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({Key? key}) : super(key: key);
@@ -19,7 +20,7 @@ class AdminDashboardScreen extends StatefulWidget {
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> with SingleTickerProviderStateMixin {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> with TickerProviderStateMixin {
   User? _currentUser;
   Map<String, dynamic> _stats = {};
   bool _isLoading = true;
@@ -27,6 +28,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   final ScrollController _scrollController = ScrollController();
   late AnimationController _animationController;
   Animation<double>? _fadeAnimation;
+  
+  // Chart data
+  List<dynamic> _chartData = [];
+  bool _isLoadingChart = false;
+  String _selectedPeriod = 'today';
+  late AnimationController _chartAnimationController;
+  Animation<double>? _chartFadeAnimation;
+  Animation<Offset>? _chartSlideAnimation;
 
   @override
   void initState() {
@@ -43,13 +52,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     
+    _chartAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _chartFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _chartAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    _chartSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _chartAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
     _animationController.forward();
+    
+    // Load chart data after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadChartData(_selectedPeriod);
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _animationController.dispose();
+    _chartAnimationController.dispose();
     super.dispose();
   }
 
@@ -79,6 +116,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           SnackBar(
             content: Text(
               'Gagal memuat statistik: ${e.toString()}',
+              style: const TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.white,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 6,
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadChartData(String period) async {
+    setState(() => _isLoadingChart = true);
+
+    try {
+      final chartData = await ApiService.getChartData(period);
+      
+      setState(() {
+        _chartData = chartData;
+        _selectedPeriod = period;
+        _isLoadingChart = false;
+      });
+      // Trigger animation after data loaded
+      _chartAnimationController.reset();
+      _chartAnimationController.forward();
+    } catch (e) {
+      setState(() => _isLoadingChart = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memuat data chart: ${e.toString()}',
               style: const TextStyle(color: Colors.black),
             ),
             backgroundColor: Colors.white,
@@ -436,6 +509,85 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
               ),
             ),
 
+            // Orders Chart Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Grafik Pesanan',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _selectedPeriod == 'today'
+                                  ? 'Pesanan Hari ini'
+                                  : _selectedPeriod == 'weekly'
+                                      ? '7 hari terakhir'
+                                      : '4 minggu terakhir',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Filter Buttons
+                        Row(
+                          children: [
+                            _buildFilterButton('Hari ini', 'today'),
+                            const SizedBox(width: 6),
+                            _buildFilterButton('Mingguan', 'weekly'),
+                            const SizedBox(width: 6),
+                            _buildFilterButton('Bulanan', 'monthly'),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Chart Container
+                    Container(
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      child: _isLoadingChart
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
+                              ),
+                            )
+                          : _selectedPeriod == 'today'
+                              ? _buildScrollableChart()
+                              : _buildChart(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Quick Actions Header (like "Semua Makanan")
             SliverToBoxAdapter(
               child: Padding(
@@ -762,6 +914,492 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterButton(String label, String period) {
+    final isSelected = _selectedPeriod == period;
+    return GestureDetector(
+      onTap: () => _loadChartData(period),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF9E090F) : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF9E090F) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF9E090F).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScrollableChart() {
+    if (_chartData == null || _chartData.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.insert_chart_outlined_rounded,
+              size: 64,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tidak ada data untuk ditampilkan',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final maxOrders = _chartData.fold<double>(0, (max, item) {
+      final orders = ((item['orders'] ?? 0) as num).toDouble();
+      return orders > max ? orders : max;
+    });
+
+    final hasData = maxOrders > 0;
+
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Expanded(
+          child: _chartFadeAnimation != null && _chartSlideAnimation != null
+              ? FadeTransition(
+                  opacity: _chartFadeAnimation!,
+                  child: SlideTransition(
+                    position: _chartSlideAnimation!,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: _chartData.length * 35.0, // 35px per bar for better spacing
+                        child: Stack(
+                          children: [
+                            BarChart(
+                              BarChartData(
+                                alignment: BarChartAlignment.spaceAround,
+                                maxY: maxOrders > 0 ? (maxOrders <= 5 ? maxOrders + 2 : maxOrders * 1.2) : 10,
+                                barTouchData: BarTouchData(
+                                  enabled: true,
+                                  touchTooltipData: BarTouchTooltipData(
+                                    getTooltipColor: (group) => const Color(0xFF2D3436),
+                                    tooltipRoundedRadius: 12,
+                                    tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                      final hour = _chartData[groupIndex]['label'];
+                                      return BarTooltipItem(
+                                        'Jam $hour\n${rod.toY.toInt()} pesanan',
+                                        const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                titlesData: FlTitlesData(
+                                  show: true,
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 32,
+                                      interval: 1,
+                                      getTitlesWidget: (value, meta) {
+                                        final index = value.toInt();
+                                        if (index >= 0 && index < _chartData.length) {
+                                          String label = _chartData[index]['label'].toString();
+                                          // Show every 2 hours
+                                          if (index % 2 != 0) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 10.0),
+                                            child: Text(
+                                              '${label}h',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.grey[700],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return const Text('');
+                                      },
+                                    ),
+                                  ),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 55,
+                                      interval: maxOrders > 0 
+                                          ? (maxOrders <= 5 
+                                              ? 1.0
+                                              : (maxOrders / 5).ceilToDouble().clamp(1.0, double.infinity))
+                                          : 1.0,
+                                      getTitlesWidget: (value, meta) {
+                                        if (value % 1 != 0) return const SizedBox.shrink();
+                                        if (value < 0) return const SizedBox.shrink();
+                                        
+                                        return Padding(
+                                          padding: const EdgeInsets.only(right: 8.0),
+                                          child: Text(
+                                            value.toInt().toString(),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey[700],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                ),
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawVerticalLine: false,
+                                  horizontalInterval: maxOrders > 0 
+                                      ? (maxOrders <= 5 ? 1.0 : (maxOrders / 5).toDouble()).clamp(1.0, double.infinity)
+                                      : 2.0,
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.shade200,
+                                      strokeWidth: 1.5,
+                                    );
+                                  },
+                                ),
+                                borderData: FlBorderData(show: false),
+                                barGroups: _chartData.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final item = entry.value;
+                                  final orders = ((item['orders'] ?? 0) as num).toDouble();
+                                  
+                                  return BarChartGroupData(
+                                    x: index,
+                                    barRods: [
+                                      BarChartRodData(
+                                        toY: orders,
+                                        color: const Color(0xFF9E090F),
+                                        width: 24,
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(6),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            if (!hasData)
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 18,
+                                        color: Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Belum ada pesanan untuk hari ini',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChart() {
+    if (_chartData == null || _chartData.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.insert_chart_outlined_rounded,
+              size: 64,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tidak ada data untuk ditampilkan',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final maxOrders = _chartData.fold<double>(0, (max, item) {
+      final orders = ((item['orders'] ?? 0) as num).toDouble();
+      return orders > max ? orders : max;
+    });
+
+    // Check if all data is zero
+    final hasData = maxOrders > 0;
+
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        // Chart
+        Expanded(
+          child: _chartFadeAnimation != null && _chartSlideAnimation != null
+              ? FadeTransition(
+                  opacity: _chartFadeAnimation!,
+                  child: SlideTransition(
+                    position: _chartSlideAnimation!,
+                    child: Stack(
+                      children: [
+                        BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: maxOrders > 0 ? (maxOrders <= 5 ? maxOrders + 2 : maxOrders * 1.2) : 10,
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (group) => const Color(0xFF2D3436),
+                  tooltipRoundedRadius: 12,
+                  tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    return BarTooltipItem(
+                      '${rod.toY.toInt()} pesanan',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 32,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+                      if (index >= 0 && index < _chartData.length) {
+                        String label = _chartData[index]['label'].toString();
+                        // Shorten label for today view
+                        if (_selectedPeriod == 'today') {
+                          // Show only every 3 hours for better readability
+                          if (index % 3 != 0 && index != _chartData.length - 1) {
+                            return const SizedBox.shrink();
+                          }
+                          label = '${label}h';
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 55,
+                    interval: maxOrders > 0 
+                        ? (maxOrders <= 5 
+                            ? 1.0
+                            : (maxOrders / 5).ceilToDouble().clamp(1.0, double.infinity))
+                        : 1.0,
+                    getTitlesWidget: (value, meta) {
+                      if (value % 1 != 0) return const SizedBox.shrink();
+                      if (value < 0) return const SizedBox.shrink();
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          value.toInt().toString(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: maxOrders > 0 
+                    ? (maxOrders <= 5 ? 1.0 : (maxOrders / 5).toDouble()).clamp(1.0, double.infinity)
+                    : 2.0,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: Colors.grey.shade200,
+                    strokeWidth: 1.5,
+                  );
+                },
+              ),
+              borderData: FlBorderData(show: false),
+              barGroups: _chartData.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final orders = ((item['orders'] ?? 0) as num).toDouble();
+                
+                return BarChartGroupData(
+                  x: index,
+                  barRods: [
+                    BarChartRodData(
+                      toY: orders,
+                      color: const Color(0xFF9E090F),
+                      width: 18,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(6),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+              if (!hasData)
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Belum ada pesanan untuk periode ini',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                      ],
+                    ),
+                  ),
+                )
+              : Stack(
+                  children: [
+                    BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        maxY: maxOrders > 0 ? maxOrders * 1.2 : 10,
+                        barTouchData: BarTouchData(enabled: false),
+                        titlesData: const FlTitlesData(show: false),
+                        gridData: const FlGridData(show: false),
+                        borderData: FlBorderData(show: false),
+                        barGroups: [],
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 

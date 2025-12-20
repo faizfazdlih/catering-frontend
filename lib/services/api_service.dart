@@ -681,4 +681,17 @@ class ApiService {
       throw Exception('Gagal memuat statistik: ${e.toString()}');
     }
   }
+
+  // ADMIN: Get Chart Data
+  static Future<List<dynamic>> getChartData(String period) async {
+    try {
+      final url = '$baseUrl/pesanan/admin/chart-data?period=$period';
+      final response = await http.get(Uri.parse(url));
+      _handleError(response);
+      final data = jsonDecode(response.body);
+      return data['chartData'] ?? [];
+    } catch (e) {
+      throw Exception('Gagal memuat data chart: ${e.toString()}');
+    }
+  }
 }
