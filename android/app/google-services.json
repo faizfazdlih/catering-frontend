@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "860842651458",
+    "firebase_url": "https://serveman-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "serveman",
+    "storage_bucket": "serveman.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860842651458:android:6c79ffed105bc064e322db",
+        "android_client_info": {
+          "package_name": "com.example.catering_client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzcUxI48BNk_M-aUL1lgWrmGAWE964pug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -12,6 +12,7 @@ import 'cart_screen.dart';
 import 'pesanan_screen.dart';
 import 'about_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/chat_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -924,6 +925,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> pages = [
       _buildHomeTab(),
       const PesananScreen(),
+      const ChatListScreen(),
       const AboutScreen(),
     ];
 
@@ -963,6 +965,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 _buildNavItem(
                   index: 2,
+                  icon: Icons.chat_bubble_rounded,
+                  label: 'Chat',
+                ),
+                _buildNavItem(
+                  index: 3,
                   icon: Icons.info_outline_rounded,
                   label: 'Tentang',
                 ),

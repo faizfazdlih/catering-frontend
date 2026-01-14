@@ -11,6 +11,7 @@ import 'menu_management_screen.dart';
 import 'orders_management_screen.dart';
 import 'admin_about_screen.dart';
 import '../../screens/login_screen.dart';
+import '../../screens/chat_list_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -853,6 +854,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
       UsersManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
       MenuManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
       OrdersManagementScreen(onBackPressed: () => setState(() => _selectedIndex = 0)),
+      const ChatListScreen(),
       const AdminAboutScreen(),
     ];
 
@@ -907,6 +909,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
               ),
               _buildNavItem(
                 index: 4,
+                icon: Icons.chat_bubble_rounded,
+                label: 'Chat',
+              ),
+              _buildNavItem(
+                index: 5,
                 icon: Icons.info_outline_rounded,
                 label: 'About',
               ),
