@@ -354,6 +354,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -402,7 +403,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total Pembayaran',
+                        'Total',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[700],

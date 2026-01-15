@@ -172,6 +172,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Logout',
@@ -189,7 +190,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: const Color(0xFF9E090F),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -295,7 +296,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                   child: const Icon(
                     Icons.logout,
                     size: 20,
-                    color: Colors.red,
+                    color: const Color(0xFF9E090F),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -304,7 +305,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: const Color(0xFF9E090F),
                   ),
                 ),
               ],
@@ -519,41 +520,45 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Grafik Pesanan',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Pesanan',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _selectedPeriod == 'today'
-                                  ? 'Pesanan Hari ini'
-                                  : _selectedPeriod == 'weekly'
-                                      ? '7 hari terakhir'
-                                      : '4 minggu terakhir',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                              const SizedBox(height: 4),
+                              Text(
+                                _selectedPeriod == 'today'
+                                    ? 'Pesanan Hari ini'
+                                    : _selectedPeriod == 'weekly'
+                                        ? '7 hari terakhir'
+                                        : '4 minggu terakhir',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         // Filter Buttons
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             _buildFilterButton('Hari ini', 'today'),
-                            const SizedBox(width: 6),
-                            _buildFilterButton('Mingguan', 'weekly'),
-                            const SizedBox(width: 6),
-                            _buildFilterButton('Bulanan', 'monthly'),
+                            const SizedBox(width: 4),
+                            _buildFilterButton('Minggu', 'weekly'),
+                            const SizedBox(width: 4),
+                            _buildFilterButton('Bulan', 'monthly'),
                           ],
                         ),
                       ],
@@ -580,9 +585,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
                               ),
                             )
-                          : _selectedPeriod == 'today'
-                              ? _buildScrollableChart()
-                              : _buildChart(),
+                          : _buildChart(),
                     ),
                   ],
                 ),
@@ -890,7 +893,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
               _buildNavItem(
                 index: 0,
                 icon: Icons.home_rounded,
-                label: 'Dashboard',
+                label: 'Home',
               ),
               _buildNavItem(
                 index: 1,
@@ -930,7 +933,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
       onTap: () => _loadChartData(period),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF9E090F) : Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -951,7 +954,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : Colors.grey[700],
           ),

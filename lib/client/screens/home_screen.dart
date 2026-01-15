@@ -114,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('Apakah Anda yakin ingin keluar?'),
