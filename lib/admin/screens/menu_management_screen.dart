@@ -80,6 +80,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Hapus Menu',
@@ -331,81 +332,93 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                 ),
                                 const Spacer(),
                                 // Price and Actions Row
-                                Row(
-                                  children: [
-                                    // Price
-                                    Text(
-                                      FormatHelper.formatCurrency(menu.harga),
-                                      style: const TextStyle(
-                                        color: Color(0xFF10B981),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    // Category Badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF667EEA).withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        menu.kategori ?? '-',
-                                        style: const TextStyle(
-                                          color: Color(0xFF667EEA),
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
+                                Flexible(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      // Price
+                                      Flexible(
+                                        child: Text(
+                                          FormatHelper.formatCurrency(menu.harga),
+                                          style: const TextStyle(
+                                            color: Color(0xFF10B981),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    // Status Badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: menu.status == 'tersedia'
-                                            ? const Color(0xFF10B981).withOpacity(0.1)
-                                            : Colors.red.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        menu.status,
-                                        style: TextStyle(
-                                          color: menu.status == 'tersedia'
-                                              ? const Color(0xFF10B981)
-                                              : Colors.red,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
+                                      const SizedBox(width: 4),
+                                      // Category Badge
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
                                         ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    // Menu Button
-                                    PopupMenuButton(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: EdgeInsets.zero,
-                                      icon: Container(
-                                        padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[100],
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: const Color(0xFF667EEA).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
                                         ),
-                                        child: Icon(
-                                          Icons.more_vert,
-                                          size: 18,
-                                          color: Colors.grey[700],
+                                        child: Text(
+                                          menu.kategori ?? '-',
+                                          style: const TextStyle(
+                                            color: Color(0xFF667EEA),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
-                                      itemBuilder: (context) => [
+                                      const SizedBox(width: 4),
+                                      // Status Badge
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: menu.status == 'tersedia'
+                                              ? const Color(0xFF10B981).withOpacity(0.1)
+                                              : Colors.red.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          menu.status,
+                                          style: TextStyle(
+                                            color: menu.status == 'tersedia'
+                                                ? const Color(0xFF10B981)
+                                                : Colors.red,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      // Menu Button
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: PopupMenuButton(
+                                          color: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          icon: Container(
+                                            width: 32,
+                                            height: 32,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[100],
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.more_vert,
+                                                size: 18,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          ),
+                                          itemBuilder: (context) => [
                                         PopupMenuItem(
                                           value: 'edit',
                                           child: Row(
@@ -445,8 +458,10 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                           _deleteMenu(menu);
                                         }
                                       },
-                                    ),
-                                  ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -554,6 +569,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Pilih Sumber Gambar',
@@ -693,6 +709,7 @@ class _MenuFormDialogState extends State<MenuFormDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
