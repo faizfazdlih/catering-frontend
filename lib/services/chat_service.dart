@@ -5,25 +5,33 @@ class ChatService {
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
 
   // Get chat rooms stream for a user
-  Stream<List<ChatRoom>> getChatRoomsStream(String userId, bool isAdmin) {
+  Stream<List<ChatRoom>> getChatRoomsStream(String userId, bool isAdmin) async* {
     print('ChatService - Getting chat rooms for userId: $userId, isAdmin: $isAdmin');
     
     // Jika admin, ambil SEMUA chat rooms tanpa filter
     if (isAdmin) {
-      return _database
-          .child('chatRooms')
-          .onValue
-          .map((event) {
+      await for (final event in _database.child('chatRooms').onValue) {
         final List<ChatRoom> chatRooms = [];
         
         if (event.snapshot.value != null) {
           final data = event.snapshot.value as Map<dynamic, dynamic>;
           print('ChatService - Admin found ${data.length} chat rooms');
-          data.forEach((key, value) {
-            final chatRoom = ChatRoom.fromJson(key, value as Map<dynamic, dynamic>);
+          
+          for (var entry in data.entries) {
+            final key = entry.key;
+            final value = entry.value as Map<dynamic, dynamic>;
+            
+            // Hitung unread count untuk admin (pesan dari user yang belum dibaca)
+            final unreadCount = await _getUnreadCountForChatRoom(key, userId);
+            
+            // Buat ChatRoom dengan unread count yang sudah dihitung
+            final chatRoomData = Map<dynamic, dynamic>.from(value);
+            chatRoomData['unreadCount'] = unreadCount;
+            
+            final chatRoom = ChatRoom.fromJson(key, chatRoomData);
             chatRooms.add(chatRoom);
-            print('ChatService - ChatRoom: userId=${chatRoom.userId}, adminId=${chatRoom.adminId}');
-          });
+            print('ChatService - ChatRoom: userId=${chatRoom.userId}, adminId=${chatRoom.adminId}, unread=$unreadCount');
+          }
           
           // Sort by last message time
           chatRooms.sort((a, b) {
@@ -35,36 +43,71 @@ class ChatService {
           print('ChatService - No chat rooms found in database');
         }
         
-        return chatRooms;
-      });
-    }
-    
-    // Jika client, filter berdasarkan userId
-    return _database
-        .child('chatRooms')
-        .orderByChild('userId')
-        .equalTo(userId)
-        .onValue
-        .map((event) {
-      final List<ChatRoom> chatRooms = [];
-      
-      if (event.snapshot.value != null) {
-        final data = event.snapshot.value as Map<dynamic, dynamic>;
-        print('ChatService - Client found ${data.length} chat rooms');
-        data.forEach((key, value) {
-          chatRooms.add(ChatRoom.fromJson(key, value as Map<dynamic, dynamic>));
-        });
-        
-        // Sort by last message time
-        chatRooms.sort((a, b) {
-          if (a.lastMessageTime == null) return 1;
-          if (b.lastMessageTime == null) return -1;
-          return b.lastMessageTime!.compareTo(a.lastMessageTime!);
-        });
+        yield chatRooms;
       }
-      
-      return chatRooms;
+    } else {
+      // Jika client, filter berdasarkan userId
+      await for (final event in _database
+          .child('chatRooms')
+          .orderByChild('userId')
+          .equalTo(userId)
+          .onValue) {
+        final List<ChatRoom> chatRooms = [];
+        
+        if (event.snapshot.value != null) {
+          final data = event.snapshot.value as Map<dynamic, dynamic>;
+          print('ChatService - Client found ${data.length} chat rooms');
+          
+          for (var entry in data.entries) {
+            final key = entry.key;
+            final value = entry.value as Map<dynamic, dynamic>;
+            
+            // Hitung unread count untuk client (pesan dari admin yang belum dibaca)
+            final unreadCount = await _getUnreadCountForChatRoom(key, userId);
+            
+            // Buat ChatRoom dengan unread count yang sudah dihitung
+            final chatRoomData = Map<dynamic, dynamic>.from(value);
+            chatRoomData['unreadCount'] = unreadCount;
+            
+            chatRooms.add(ChatRoom.fromJson(key, chatRoomData));
+          }
+          
+          // Sort by last message time
+          chatRooms.sort((a, b) {
+            if (a.lastMessageTime == null) return 1;
+            if (b.lastMessageTime == null) return -1;
+            return b.lastMessageTime!.compareTo(a.lastMessageTime!);
+          });
+        }
+        
+        yield chatRooms;
+      }
+    }
+  }
+
+  // Helper: Get unread count for a specific chat room for current user
+  Future<int> _getUnreadCountForChatRoom(String chatRoomId, String currentUserId) async {
+    final snapshot = await _database
+        .child('messages')
+        .child(chatRoomId)
+        .orderByChild('isRead')
+        .equalTo(false)
+        .once();
+
+    if (snapshot.snapshot.value == null) return 0;
+
+    final data = snapshot.snapshot.value as Map<dynamic, dynamic>;
+    int unreadCount = 0;
+
+    data.forEach((key, value) {
+      final message = value as Map<dynamic, dynamic>;
+      // Hanya hitung pesan yang BUKAN dari user saat ini
+      if (message['senderId'] != currentUserId) {
+        unreadCount++;
+      }
     });
+
+    return unreadCount;
   }
 
   // Get messages stream for a chat room
@@ -164,16 +207,9 @@ class ChatService {
       'lastMessage': message,
       'lastMessageTime': chatMessage.timestamp.millisecondsSinceEpoch,
     });
-
-    // Increment unread count for receiver
-    final chatRoomSnapshot = await _database.child('chatRooms').child(chatRoomId).once();
-    if (chatRoomSnapshot.snapshot.value != null) {
-      final chatRoomData = chatRoomSnapshot.snapshot.value as Map<dynamic, dynamic>;
-      final currentUnreadCount = chatRoomData['unreadCount'] ?? 0;
-      await _database.child('chatRooms').child(chatRoomId).update({
-        'unreadCount': currentUnreadCount + 1,
-      });
-    }
+    
+    // Unread count sekarang dihitung secara real-time di getChatRoomsStream
+    // Tidak perlu increment manual di sini
   }
 
   // Mark messages as read
@@ -200,10 +236,8 @@ class ChatService {
       if (updates.isNotEmpty) {
         await _database.update(updates);
         
-        // Reset unread count in chat room
-        await _database.child('chatRooms').child(chatRoomId).update({
-          'unreadCount': 0,
-        });
+        // Unread count sekarang dihitung secara real-time di getChatRoomsStream
+        // Tidak perlu reset manual di sini
       }
     }
   }

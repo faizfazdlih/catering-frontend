@@ -99,7 +99,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Gagal mengirim pesan'),
-            backgroundColor: Colors.red,
+            backgroundColor: Color(0xFFD32F2F),
           ),
         );
       }
@@ -137,7 +137,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               height: 32,
               margin: const EdgeInsets.only(right: 8, bottom: 4),
               decoration: BoxDecoration(
-                color: Colors.orange[100],
+                color: Color(0xFF9E090F),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -146,7 +146,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ? message.senderName[0].toUpperCase() 
                       : '?',
                   style: TextStyle(
-                    color: Colors.orange[800],
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -158,7 +158,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isMe ? const Color(0xFFFF9800) : Colors.white,
+                color: isMe ? const Color(0xFF9E090F) : Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -184,7 +184,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Colors.orange[900],
+                          color: const Color(0xFF9E090F),
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -321,15 +321,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: Colors.orange[100],
+                  color: Color(0xFF9E090F),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.orange.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Center(
                   child: Text(
@@ -337,7 +330,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ? widget.chatRoomName[0].toUpperCase() 
                         : '?',
                     style: TextStyle(
-                      color: Colors.orange[800],
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
                     ),
@@ -366,12 +359,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert_rounded, color: Colors.grey[700]),
-            onPressed: () {},
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -419,7 +406,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.orange.withOpacity(0.1),
+                                color: Color(0xFF9E090F).withOpacity(0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 4),
                               ),
@@ -428,7 +415,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           child: Icon(
                             Icons.forum_outlined,
                             size: 72,
-                            color: Colors.orange[400],
+                            color: Color(0xFF9E090F),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -539,6 +526,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             letterSpacing: 0.2,
                           ),
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
@@ -562,15 +551,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF9800),
+                        color: const Color(0xFF9E090F),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.orange.withOpacity(0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                       ),
                       child: const Icon(
                         Icons.send_rounded,

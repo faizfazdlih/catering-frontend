@@ -207,14 +207,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.orange[100],
+                      color: Color(0xFF9E090F),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
                         displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                         style: TextStyle(
-                          color: Colors.orange[800],
+                          color: Color(0xFFFFFFFF),
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
@@ -256,7 +256,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: chatRoom.unreadCount > 0 
-                              ? Colors.orange[700] 
+                              ? Colors.black 
                               : Colors.grey[500],
                         ),
                       ),
@@ -268,7 +268,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange,
+                            color: const Color(0xFF9E090F),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -329,12 +329,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Gagal membuat chat room'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Color(0xFF9E090F),
                     ),
                   );
                 }
               },
-              backgroundColor: Colors.orange,
+              backgroundColor: const Color(0xFF9E090F),
               foregroundColor: Colors.white,
               icon: const Icon(Icons.message_rounded),
               label: const Text(

@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF6B35)),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
                   value: loadingProgress.expectedTotalBytes != null
                       ? loadingProgress.cumulativeBytesLoaded /
                           loadingProgress.expectedTotalBytes!
@@ -429,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: _isLoading
                         ? const Center(
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B35)),
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9E090F)),
                             ),
                           )
                         : _newestMenu.isEmpty

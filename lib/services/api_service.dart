@@ -5,7 +5,7 @@ import 'package:http_parser/http_parser.dart' as http_parser;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:3000/api'; // Android Emulator
+  static const String baseUrl = 'http://192.168.100.101:3000/api'; // Android Emulator
   // static const String baseUrl = 'http://localhost:3000/api'; // iOS Simulator
   // static const String baseUrl = 'http://192.168.1.X:3000/api'; // Device Fisik
 
